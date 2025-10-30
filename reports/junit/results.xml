@@ -1,0 +1,6 @@
+<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="16.995496">
+<testsuite name="Login.spec.ts" timestamp="2025-10-30T02:21:29.088Z" hostname="chromium" tests="1" failures="0" skipped="0" time="11.469" errors="0">
+<testcase name="UI Functional Tests: Login functionality › Verify that the login page loads correclty" classname="Login.spec.ts" time="11.469">
+</testcase>
+</testsuite>
+</testsuites>

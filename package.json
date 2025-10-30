@@ -1,0 +1,23 @@
+{
+  "name": "playwright-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "board": "playwright test tests/Board.spec.ts && npx playwright show-report"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@faker-js/faker": "^9.9.0",
+    "@playwright/test": "^1.53.2",
+    "@types/faker": "^6.6.11",
+    "@types/node": "^24.0.10"
+  },
+  "dependencies": {
+    "dotenv": "^17.0.1",
+    "faker": "^5.5.3",
+    "uuid": "^11.1.0"
+  }
+}
