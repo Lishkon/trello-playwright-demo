@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    container_name: jenkins
+    user: root
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      # Persistent Jenkins data volume (named volume)
+      - jenkins_home:/var/jenkins_home
+      # Let Jenkins run Docker containers for builds
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Mount your local Playwright project into the container
+      - "C:/Users/17276_bs/OneDrive/Documents/Automation/playwright-demo:/host_project"
+    restart: unless-stopped
+
+volumes:
+  jenkins_home:
