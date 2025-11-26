@@ -1,116 +1,70 @@
-import { expect, Locator, Page } from "@playwright/test";
-import { LoginForm } from "../selectors/Login.json"
-import { error } from "console";
-import { tr } from "@faker-js/faker";
+import { Locator, Page } from "@playwright/test";
+import { LoginSelectors, AttlassianScreenSelectors } from "../selectors/login-selectors";
 
 export class Login {
     readonly page: Page;
+    readonly trelloLogo: Locator;
+    readonly emailInput: Locator;
+    readonly passwordInput: Locator;
+    readonly continueButton: Locator;
+    readonly loginButton: Locator;
+    readonly signupButton: Locator;
+    readonly atlassianHeaderTitle: Locator;
+    readonly invalidCredentialHeaderTitle: Locator;
+    readonly missingEmailValidationMessage: Locator;
+    readonly missingPasswordValidationMessage: Locator;
+    readonly otpInput: Locator;
+    readonly otpSubmitButton: Locator;
 
     constructor(page: Page) {
         this.page = page;
+        this.trelloLogo = page.locator(LoginSelectors.TrelloLogo);
+        this.emailInput = page.locator(LoginSelectors.EmailInp);
+        this.passwordInput = page.locator(LoginSelectors.PasswordInp);
+        this.continueButton = page.locator(LoginSelectors.ContinueBtn);
+        this.loginButton = page.locator(LoginSelectors.LogInBtn);
+        this.signupButton = page.locator(LoginSelectors.SignUpButn);
+        this.atlassianHeaderTitle = page.locator(AttlassianScreenSelectors.HeaderTitle);
+        this.invalidCredentialHeaderTitle = page.locator(AttlassianScreenSelectors.IncorrectCredentialsWarning);
+        this.missingEmailValidationMessage = page.locator(AttlassianScreenSelectors.MissingEmailValidationMessage);
+        this.missingPasswordValidationMessage = page.locator(AttlassianScreenSelectors.MissingPasswordValidationMessage);
+        this.otpInput = page.locator(AttlassianScreenSelectors.OtpCodeInput);
+        this.otpSubmitButton = page.locator(AttlassianScreenSelectors.VerifyButton);
     }
 
-    trelloLogo = LoginForm.TrelloLogo;
-    emailInpt = LoginForm.EmailInp;
-    passwdInpt = LoginForm.PasswordInp;
-    continueButton = LoginForm.ContinueBtn;
-    loginButton = LoginForm.LogInBtn;
-    signupButton = LoginForm.SignUpButn;
 
-    async verifyUrl(url: string) {
-        expect(this.page.url()).toContain(url);
+    async login(username: string, password: string) {
+        await this.emailInput.fill(username);
+        await this.continueButton.click();
+        await this.passwordInput.fill(password);
+        await this.loginButton.click();
     }
 
-    async verifyPageTitle(title: string) {
-        expect(await this.page.title()).toBe(title);
+    async typeEmail(email: string) {
+        await this.emailInput.fill(email);
+    }
+
+    async typePassword(password: string) {
+        await this.passwordInput.fill(password);
     }
     
-    async verifyLogoIsPresent() {
-        await expect(this.page.locator(this.trelloLogo)).toBeVisible();
-    }
-
-    async verifyEmailInputIsPresent() {
-        await expect(this.page.locator(this.emailInpt)).toBeVisible();
-    }
-
-    async verifyContinueButtonIsPresent() {
-        await expect(this.page.locator(this.continueButton)).toBeVisible();
+    async clickContinue() {
+        await this.continueButton.click();
     }
     
-    async verifyPasswordInputIsPresent() {
-        await expect(this.page.locator(this.passwdInpt)).toBeVisible();
-    }
-
-    async verifyLoginButtonIsPresent() {
-        await expect(this.page.locator(this.loginButton)).toBeVisible();
-    }
-
-    async verifyContinueWithGoogleButtonIsPresent() {
-        // await expect(this.page.locator(this.emailInpt)).toBeVisible();
-    }
-
-    async verifyContinueWithMicrosoftButtonIsPresent() {}
-    
-    async verifyContinueWithAppleButtonIsPresent() {}
-    
-    async verifyContinueWithClackButtonIsPresent() {}
-
-    async loginForm(username: string, password: string) {
-        await this.enterEmailAndClickContinue(username);
-        await this.enterPasswordAndClickLogin(password);
-    }
-
-    async enterEmailAndClickContinue(email: string) {
-        await this.page.fill(LoginForm.EmailInp, email);
-        await this.page.click(LoginForm.ContinueBtn);
-    }
-
-    async enterPasswordAndClickLogin(password: string) {
-        await this.page.fill(LoginForm.PasswordInp, password);
-        await this.page.click(LoginForm.LogInBtn);
-    }
-
-    async enterEmail(email: string) {
-        await this.page.fill(LoginForm.EmailInp, email);
-    }
-    
-    async enterPassword(password: string) {
-        await this.page.fill(LoginForm.PasswordInp, password);
-    }
-    
-    async clickContinueButton() {
-        await this.page.click(LoginForm.ContinueBtn);
-    }
-    
-    async clickSignUpButton() {
-        await this.page.click(LoginForm.SignUpButn);
-    }
-    
-    async verifySignUpButtonIsPresent() {
-        await expect(this.page.locator(this.signupButton)).toBeVisible();
+    async clickSignUp() {
+        await this.signupButton.click();
     }
     
     async clickLoginButton() {
-        await this.page.click(LoginForm.LogInBtn);
+        await this.loginButton.click();
     }
 
-    async verifyInvalidCredentialsWarning(text: string) {
-        expect(await this.page.innerText(LoginForm.IncorrectCredentialsWarning)).toBe(text)
-    }
-
-    async verifyMaskedPassword() {
-        const type = await this.page.getAttribute(LoginForm.PasswordInp, 'type')
-        expect(type).toBe(`password`);
-    }
-
-    /**
-     * Takes in the locator and the string value of the warning and verifies the warning is present.
-     * Will be taken away some place to be reused
-     * @param locator 
-     * @param warning 
-     */
-    async verifyWarning(locator: Locator, warning: string) {
-        // expect(await this.page.innerText(locator)).toBe(warning);
-        await expect(locator).toHaveText(warning, { timeout:6000 });
+    async completeOtp(code: string) {
+        if(await this.otpInput.isVisible()){
+            await this.otpInput.click();
+            await this.page.keyboard.type(code); 
+            await this.otpSubmitButton.click();
+        }
     }
 }
