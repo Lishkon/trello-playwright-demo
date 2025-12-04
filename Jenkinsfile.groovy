@@ -48,7 +48,7 @@ pipeline {
               npx playwright install --with-deps
 
               # NOTE: your file is login.spec.ts (lowercase L), not Login.spec.ts
-              npx playwright test tests/login.spec.ts --reporter=html
+              npx playwright test tests/login.spec.ts
             '
         '''
       }
@@ -57,43 +57,10 @@ pipeline {
 
     stage('Publish & Archive') {
       steps {
-        sh '''
-          rm -rf playwright-report || true
-          if [ -d /host_project/playwright-report ]; then
-            cp -r /host_project/playwright-report ./ || true
-          fi
-          echo "--- workspace report listing ---"
-          find playwright-report -type f -printf "%P\n" 2>/dev/null || true
-        ''' 
-
-        sh '''
-            echo "=== verify playwright report contents ==="
-            if [ -f /host_project/playwright-report/data/test-results.json ]; then
-                wc -c /host_project/playwright-report/data/test-results.json || true
-                # show first keys to confirm it’s not empty
-                head -n 5 /host_project/playwright-report/data/test-results.json || true
-            else
-                echo "No test-results.json found in playwright-report/data"
-            fi
-
-            echo "=== list tests dir ==="
-            find /host_project/tests -maxdepth 2 -type f -name "*.spec.*" -printf "%P\n" 2>/dev/null || true
-
-            echo "=== playwright lists discovered tests ==="
-            npx --yes playwright list 2>/dev/null || true
-            '''
-
-
-        publishHTML target: [
-          reportDir: 'playwright-report',
-          reportFiles: 'index.html',
-          reportName: 'Playwright HTML Report',
-          keepAll: true,
-          alwaysLinkToLastBuild: true
-        ]
-
-        archiveArtifacts artifacts: 'playwright-report/**', onlyIfSuccessful: false, fingerprint: true
+        // Archive the HTML report as a build artifact
+        archiveArtifacts artifacts: 'playwright-report/**', fingerprint: true
       }
     }
+
   }
 }
