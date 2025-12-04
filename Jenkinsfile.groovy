@@ -24,12 +24,21 @@ pipeline {
           set -eux
 
           docker run --rm --pull=missing \
-            -v /host_project:/work \
-            -w /work \
             mcr.microsoft.com/playwright:v1.53.2-jammy \
             bash -lc '
               # Inner shell is bash -> pipefail is fine
               set -euxo pipefail
+
+              # Ensure git is available (Playwright image may already have it, but this is safe)
+              if ! command -v git >/dev/null 2>&1; then
+                apt-get update
+                apt-get install -y git
+              fi
+
+              # Clone the repo fresh inside the container
+              git clone https://github.com/Lishkon/trello-playwright-demo.git /work
+              cd /work
+
               node -v; npm -v
 
               # Prefer ci; fall back to install if lockfile missing/old
@@ -38,12 +47,13 @@ pipeline {
               # Ensure browsers present
               npx playwright install --with-deps
 
-              # Run the same spec you run locally
-              npx playwright test tests/Login.spec.ts --reporter=html
+              # NOTE: your file is login.spec.ts (lowercase L), not Login.spec.ts
+              npx playwright test tests/login.spec.ts --reporter=html
             '
         '''
       }
     }
+
 
     stage('Publish & Archive') {
       steps {
