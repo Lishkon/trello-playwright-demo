@@ -21,7 +21,7 @@ pipeline {
     stage('Install & Test in Playwright image') {
       steps {
         sh '''
-          set -euxo pipefail
+          set -eux
 
           docker run --rm --pull=missing \
             -v "$WORKSPACE":/work \
