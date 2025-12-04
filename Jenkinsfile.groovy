@@ -8,30 +8,31 @@ pipeline {
   options { timestamps() }
 
   stages {
-    stage('Verify workspace') {
+    stage('Verify mount') {
       steps {
         sh '''
-          echo "--- tests under $WORKSPACE/tests ---"
-          find "$WORKSPACE/tests" -maxdepth 2 -type f -printf '%P\n' || true
+          echo "--- tests under /host_project/tests ---"
+          find /host_project/tests -maxdepth 2 -type f -printf '%P\n' || true
         '''
       }
     }
 
-
     stage('Install & Test in Playwright image') {
       steps {
         sh '''
+          # Outer shell is /bin/sh (dash) -> no pipefail support here
           set -eux
 
           docker run --rm --pull=missing \
-            -v "$WORKSPACE":/work \
+            -v /host_project:/work \
             -w /work \
             mcr.microsoft.com/playwright:v1.53.2-jammy \
             bash -lc '
+              # Inner shell is bash -> pipefail is fine
               set -euxo pipefail
               node -v; npm -v
 
-              # Prefer ci; fall back to install if lockfile format mismatches
+              # Prefer ci; fall back to install if lockfile missing/old
               (npm ci) || (echo "[info] npm ci failed; falling back to npm install" && npm install)
 
               # Ensure browsers present
@@ -43,8 +44,6 @@ pipeline {
         '''
       }
     }
-
-
 
     stage('Publish & Archive') {
       steps {
