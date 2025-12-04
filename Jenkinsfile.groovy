@@ -8,23 +8,25 @@ pipeline {
   options { timestamps() }
 
   stages {
-    stage('Verify mount') {
+    stage('Verify workspace') {
       steps {
         sh '''
-          echo "--- tests under /host_project/tests ---"
-          find /host_project/tests -maxdepth 2 -type f -printf "%P\n" 2>/dev/null || true
+          echo "--- tests under $WORKSPACE/tests ---"
+          find "$WORKSPACE/tests" -maxdepth 2 -type f -printf '%P\n' || true
         '''
       }
     }
 
+
     stage('Install & Test in Playwright image') {
       steps {
-        sh """
-          set -eu
-          docker run --rm --pull=missing \\
-            -v "/host_project":/work \\
-            -w /work \\
-            ${PW_IMAGE} \\
+        sh '''
+          set -euxo pipefail
+
+          docker run --rm --pull=missing \
+            -v "$WORKSPACE":/work \
+            -w /work \
+            mcr.microsoft.com/playwright:v1.53.2-jammy \
             bash -lc '
               set -euxo pipefail
               node -v; npm -v
@@ -38,9 +40,11 @@ pipeline {
               # Run the same spec you run locally
               npx playwright test tests/Login.spec.ts --reporter=html
             '
-        """
+        '''
       }
     }
+
+
 
     stage('Publish & Archive') {
       steps {
