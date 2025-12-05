@@ -20,13 +20,17 @@ pipeline {
     stage('Install & Test in Playwright image') {
       steps {
         script {
-          catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-            sh '''
+          // Run tests in a named container so we can docker cp from it
+          def exitCode = sh(
+            script: '''
               set -eux
 
-              docker run --rm --pull=missing \
+              # Clean up any previous container with same name
+              docker rm -f pw-tests || true
+
+              docker run --name pw-tests --pull=missing \
                 mcr.microsoft.com/playwright:v1.53.2-jammy \
-                bash -lc '
+                bash -lc "
                   set -euxo pipefail
 
                   if ! command -v git >/dev/null 2>&1; then
@@ -41,26 +45,43 @@ pipeline {
                   node -v; npm -v
                   npm install
 
-                  # IMPORTANT: enable HTML reporter in CI
-                  CI=1 npx playwright test tests/login.spec.ts --reporter=html
-                '
-            '''
+                  # Generate HTML report
+                  npx playwright test tests/login.spec.ts --reporter=html
+                "
+            ''',
+            returnStatus: true
+          )
+
+          // Mark build result but don’t abort pipeline; we still want the report
+          if (exitCode != 0) {
+            currentBuild.result = 'UNSTABLE'
           }
         }
       }
     }
 
 
-
     stage('Publish & Archive') {
       steps {
-        // /host_project is visible inside the Jenkins container
-        dir('/host_project') {
+        script {
+          sh '''
+            set -eux
+
+            # Copy report from the test container to Jenkins workspace
+            # (workspace is the CWD when this runs)
+            docker cp pw-tests:/work/playwright-report ./playwright-report || echo "No report directory to copy"
+          '''
+
+          // Now archive from Jenkins workspace
           archiveArtifacts artifacts: 'playwright-report/**', fingerprint: true, allowEmptyArchive: true
         }
       }
+      post {
+        always {
+          // Clean up the test container
+          sh 'docker rm -f pw-tests || true'
+        }
+      }
     }
-
-
   }
 }
