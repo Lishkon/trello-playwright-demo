@@ -36,8 +36,9 @@ pipeline {
               fi
 
               # Clone the repo fresh inside the container
-              git clone https://github.com/Lishkon/trello-playwright-demo.git /work
-              cd /work
+              git clone --branch master --single-branch \
+              https://github.com/Lishkon/trello-playwright-demo.git /work
+
 
               node -v; npm -v
 
