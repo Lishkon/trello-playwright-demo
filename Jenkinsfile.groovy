@@ -32,8 +32,6 @@ pipeline {
                 bash -lc '
                   set -euxo pipefail
 
-                  echo "Inside container, CI=\"$CI\""
-
                   if ! command -v git >/dev/null 2>&1; then
                     apt-get update
                     apt-get install -y git
@@ -60,6 +58,7 @@ pipeline {
         }
       }
     }
+
 
     stage('Publish & Archive') {
       steps {
