@@ -20,7 +20,6 @@ pipeline {
     stage('Install & Test in Playwright image') {
       steps {
         script {
-          // Run Playwright tests in a named container so we can docker cp from it
           int exitCode = sh(
             script: '''
               set -eux
@@ -29,6 +28,7 @@ pipeline {
               docker rm -f pw-tests || true
 
               docker run --name pw-tests --pull=missing \
+                -e CI=1 \
                 mcr.microsoft.com/playwright:v1.53.2-jammy \
                 bash -lc "
                   set -euxo pipefail
@@ -45,14 +45,14 @@ pipeline {
                   node -v; npm -v
                   npm install
 
-                  # Generate HTML report alongside the list reporter
+                  # Generate HTML report only (no server, thanks to CI=1)
                   npx playwright test tests/login.spec.ts --reporter=html
                 "
             ''',
             returnStatus: true
           )
 
-          // Mark build result based on test outcome, but DO NOT abort the pipeline
+          // Tests failed? Mark build as UNSTABLE, but KEEP GOING so we can still get the report
           if (exitCode != 0) {
             currentBuild.result = 'UNSTABLE'
           }
@@ -60,29 +60,29 @@ pipeline {
       }
     }
 
+
     stage('Publish & Archive') {
       steps {
         script {
           sh '''
             set -eux
 
-            # Show current workspace location for sanity
-            echo "Jenkins workspace is: $PWD"
+            echo "Workspace: $PWD"
 
-            # Copy the Playwright HTML report from the test container into the workspace
+            # Copy the HTML report from the test container into this workspace
             docker cp pw-tests:/work/playwright-report ./playwright-report || echo "No report directory to copy"
 
-            # List what we just copied (helps debug if path is wrong)
+            echo "Contents of workspace after docker cp:"
             ls -R .
           '''
 
-          // Now archive artifacts from the workspace
+          // Archive whatever we have under playwright-report (if it's there)
           archiveArtifacts artifacts: 'playwright-report/**', fingerprint: true, allowEmptyArchive: true
         }
       }
       post {
         always {
-          // Clean up the test container
+          // Clean up the container after we're done
           sh 'docker rm -f pw-tests || true'
         }
       }
