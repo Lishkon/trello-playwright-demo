@@ -45,10 +45,10 @@ pipeline {
               node -v; npm -v
 
               # Prefer ci; fall back to install if lockfile missing/old
-              (npm ci) || (echo "[info] npm ci failed; falling back to npm install" && npm install)
+              npm install
 
               # Ensure browsers present
-              npx playwright install --with-deps
+              # npx playwright install --with-deps
 
               # NOTE: your file is login.spec.ts (lowercase L), not Login.spec.ts
               npx playwright test tests/login.spec.ts
