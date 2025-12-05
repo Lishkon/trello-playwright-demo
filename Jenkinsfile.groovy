@@ -28,10 +28,11 @@ pipeline {
               docker rm -f pw-tests || true
 
               docker run --name pw-tests --pull=missing \
-                -e CI=1 \
                 mcr.microsoft.com/playwright:v1.53.2-jammy \
-                bash -lc "
+                bash -lc '
                   set -euxo pipefail
+
+                  echo "Inside container, CI=\"$CI\""
 
                   if ! command -v git >/dev/null 2>&1; then
                     apt-get update
@@ -45,9 +46,9 @@ pipeline {
                   node -v; npm -v
                   npm install
 
-                  # Generate HTML report only (no server, thanks to CI=1)
-                  npx playwright test tests/login.spec.ts --reporter=html
-                "
+                  # Force CI=1 only for this command so Playwright writes the report and EXITS
+                  CI=1 npx playwright test tests/login.spec.ts --reporter=html
+                '
             ''',
             returnStatus: true
           )
@@ -59,7 +60,6 @@ pipeline {
         }
       }
     }
-
 
     stage('Publish & Archive') {
       steps {
