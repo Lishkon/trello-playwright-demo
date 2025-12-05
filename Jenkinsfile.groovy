@@ -19,51 +19,48 @@ pipeline {
 
     stage('Install & Test in Playwright image') {
       steps {
-        sh '''
-          # Outer shell is /bin/sh (dash) -> no pipefail support here
-          set -eux
+        script {
+          catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+            sh '''
+              set -eux
 
-          docker run --rm --pull=missing \
-            mcr.microsoft.com/playwright:v1.53.2-jammy \
-            bash -lc '
-              # Inner shell is bash -> pipefail is fine
-              set -euxo pipefail
+              docker run --rm --pull=missing \
+                mcr.microsoft.com/playwright:v1.53.2-jammy \
+                bash -lc '
+                  set -euxo pipefail
 
-              # Ensure git is available (Playwright image may already have it, but this is safe)
-              if ! command -v git >/dev/null 2>&1; then
-                apt-get update
-                apt-get install -y git
-              fi
+                  if ! command -v git >/dev/null 2>&1; then
+                    apt-get update
+                    apt-get install -y git
+                  fi
 
-              # Clone the repo fresh inside the container
-              git clone --branch master --single-branch \
-                https://github.com/Lishkon/trello-playwright-demo.git /work
+                  git clone --branch master --single-branch \
+                    https://github.com/Lishkon/trello-playwright-demo.git /work
+                  cd /work
 
-              cd /work
+                  node -v; npm -v
+                  npm install
 
-
-              node -v; npm -v
-
-              # Prefer ci; fall back to install if lockfile missing/old
-              npm install
-
-              # Ensure browsers present
-              # npx playwright install --with-deps
-
-              # NOTE: your file is login.spec.ts (lowercase L), not Login.spec.ts
-              npx playwright test tests/login.spec.ts
-            '
-        '''
+                  # IMPORTANT: enable HTML reporter in CI
+                  CI=1 npx playwright test tests/login.spec.ts --reporter=html
+                '
+            '''
+          }
+        }
       }
     }
+
 
 
     stage('Publish & Archive') {
       steps {
-        // Archive the HTML report as a build artifact
-        archiveArtifacts artifacts: 'playwright-report/**', fingerprint: true
+        // /host_project is visible inside the Jenkins container
+        dir('/host_project') {
+          archiveArtifacts artifacts: 'playwright-report/**', fingerprint: true, allowEmptyArchive: true
+        }
       }
     }
+
 
   }
 }
