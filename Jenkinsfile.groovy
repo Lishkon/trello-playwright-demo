@@ -20,12 +20,12 @@ pipeline {
     stage('Install & Test in Playwright image') {
       steps {
         script {
-          // Run tests in a named container so we can docker cp from it
-          def exitCode = sh(
+          // Run Playwright tests in a named container so we can docker cp from it
+          int exitCode = sh(
             script: '''
               set -eux
 
-              # Clean up any previous container with same name
+              # Make sure any old container with the same name is gone
               docker rm -f pw-tests || true
 
               docker run --name pw-tests --pull=missing \
@@ -45,14 +45,14 @@ pipeline {
                   node -v; npm -v
                   npm install
 
-                  # Generate HTML report
+                  # Generate HTML report alongside the list reporter
                   npx playwright test tests/login.spec.ts --reporter=html
                 "
             ''',
             returnStatus: true
           )
 
-          // Mark build result but don’t abort pipeline; we still want the report
+          // Mark build result based on test outcome, but DO NOT abort the pipeline
           if (exitCode != 0) {
             currentBuild.result = 'UNSTABLE'
           }
@@ -60,19 +60,23 @@ pipeline {
       }
     }
 
-
     stage('Publish & Archive') {
       steps {
         script {
           sh '''
             set -eux
 
-            # Copy report from the test container to Jenkins workspace
-            # (workspace is the CWD when this runs)
+            # Show current workspace location for sanity
+            echo "Jenkins workspace is: $PWD"
+
+            # Copy the Playwright HTML report from the test container into the workspace
             docker cp pw-tests:/work/playwright-report ./playwright-report || echo "No report directory to copy"
+
+            # List what we just copied (helps debug if path is wrong)
+            ls -R .
           '''
 
-          // Now archive from Jenkins workspace
+          // Now archive artifacts from the workspace
           archiveArtifacts artifacts: 'playwright-report/**', fingerprint: true, allowEmptyArchive: true
         }
       }
