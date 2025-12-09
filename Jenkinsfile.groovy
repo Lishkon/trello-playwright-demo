@@ -65,26 +65,32 @@ pipeline {
         script {
           sh '''
             set -eux
-
             echo "Workspace: $PWD"
-
-            # Copy the HTML report from the test container into this workspace
             docker cp pw-tests:/work/playwright-report ./playwright-report || echo "No report directory to copy"
-
             echo "Contents of workspace after docker cp:"
             ls -R .
           '''
 
-          // Archive whatever we have under playwright-report (if it's there)
+          // Archive the raw files (optional but useful)
           archiveArtifacts artifacts: 'playwright-report/**', fingerprint: true, allowEmptyArchive: true
+
+          // Publish a nice HTML report tab
+          publishHTML(target: [
+            reportDir: 'playwright-report',
+            reportFiles: 'index.html',
+            reportName: 'Playwright HTML Report',
+            keepAll: true,
+            alwaysLinkToLastBuild: true,
+            allowMissing: true
+          ])
         }
       }
       post {
         always {
-          // Clean up the container after we're done
           sh 'docker rm -f pw-tests || true'
         }
       }
     }
+
   }
 }
