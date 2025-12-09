@@ -48,7 +48,8 @@ pipeline {
                   npm install
 
                   # Force CI=1 only for this command so Playwright writes the report and EXITS
-                  CI=1 npx playwright test tests/login.spec.ts
+                  CI=1 npx playwright test tests/login.spec.ts --reporter=html
+
                 '
             ''',
             returnStatus: true
