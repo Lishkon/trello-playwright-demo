@@ -49,6 +49,46 @@ The tests run fully inside Dockerized Playwright images.
 
 --- 
 
+## 🔐 Environment Variables Setup
+
+This project requires a `.env` file to store sensitive configuration values such as login credentials used by Playwright tests.
+The `.env` file is not included in source control (it's ignored through `.gitignore`), so you must create it manually before running tests.
+
+1. Create a .env file in the project root:
+```bash
+trello-playwright-demo/
+│
+├── .env        ← create this file here
+├── tests/
+├── pages/
+├── helpers/
+...
+```
+2. Add the required environment variables
+Here is the template you should include in your README:
+```bash
+# ------------------------------
+# Playwright Test Environment
+# ------------------------------
+
+# Trello/Atlassian Test Account
+INVALID_USER_EMAIL=your-invalid-email
+INVALID_USER_PASSWORD=your-invalid-password
+USER_EMAIL=your-valid-email
+USER_PASSWORD=your-invalid-password
+
+# 2FA / TOTP (if applicable)
+TOTP_SECRET=your-base32-secret-key
+```
+
+3. Save the file — nothing else is needed
+
+Playwright loads `.env` automatically via dotenv (or via your helper functions loading from `process.env`).
+
+> ⚠️ IMPORTANT: Never commit .env
+ 
+--- 
+
 ## 🧪 Running Tests Locally (Optional, No Docker/Jenkins reqiored)
 
 1. Install dependencies: `npm install`
