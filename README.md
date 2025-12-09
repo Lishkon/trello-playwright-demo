@@ -91,8 +91,12 @@ http://localhost:4000
 
 Choose:
 
-Pipeline -> Pipeline script from SCM
-Repo URL: `https://github.com/Lishkon/trello-playwright-demo.gi`
+- Pipeline -> Pipeline script from SCM -> SCM: Git
+- Expand the Repositories:
+- Repo URL: `https://github.com/Lishkon/trello-playwright-demo.gi`
+- Add the new credentials and make sure they show in the Credentials field
+- Enter `*/master` as a Branch Specifier
+- Provide `Jenkinsfile.groovy` asthe Script Path option
 
 Jenkins will automatically:
 - Launch Playwright test container
@@ -130,101 +134,7 @@ Fixed by publishing:
 playwright-report/index.html
 ```
 
-## ⚙️ Step-by-Step Jenkins Setup
-1️⃣ Create a `docker-compose.yml`
-```yaml
-version: '3.9'
-
-services:
-  jenkins:
-    image: jenkins/jenkins:lts-jdk17
-    container_name: jenkins
-    ports:
-      - "8080:8080"
-      - "50000:50000"
-    volumes:
-      - jenkins_home:/var/jenkins_home
-      - .:/host_project
-    environment:
-      - JAVA_OPTS=-Dhudson.model.DirectoryBrowserSupport.CSP=sandbox\ allow-scripts;\ default-src\ 'self'\ 'unsafe-inline'\ 'unsafe-eval'\ data:\ blob:;\ img-src\ 'self'\ data:\ blob:;\ style-src\ 'self'\ 'unsafe-inline';\ connect-src\ 'self'\ data:\ blob:
-
-volumes:
-  jenkins_home:
-```
-## 2️⃣ Start Jenkins
-```bash
-docker compose up -d
-```
-
-Open Jenkins at:
-👉 http://localhost:8080
-
-Retrieve the admin password:
-```bash
-docker exec -it jenkins cat /var/jenkins_home/secrets/initialAdminPassword
-```
-Finish setup → install recommended plugins → create an admin account.
-
-Plugins:
-- ✅ _Pipeline_ (`workflow-aggregator`)
-- ✅ _Git_
-- ✅ _NodeJS_
-- ✅ _JUnit_
-- ✅ _HTML Publisher_
-
-## 3️⃣ Create a Jenkins Pipeline Job
-1. In Jenkins → click New Item
-2. Name it (e.g., Playwright_CI)
-3. Choose Pipeline
-4. Under Pipeline:
-    - Definition: “Pipeline script”
-    - Script Path: `Jenkinsfile.groovy` (if stored in repo)
-
-## 4️⃣ Example Jenkinsfile.groovy
-```groovy
-pipeline {
-  agent any
-
-  stages {
-    stage('Verify mount') {
-      steps {
-        sh 'ls -la /host_project'
-      }
-    }
-
-    stage('Install & Test in Playwright image') {
-      steps {
-        sh '''
-          docker run --rm -v /host_project:/work -w /work mcr.microsoft.com/playwright:v1.53.2-jammy bash -lc "
-            node -v &&
-            npm ci &&
-            npx playwright install --with-deps &&
-            npx playwright test ||
-            EXIT_CODE=1;
-            mkdir -p reports/html;
-            npx playwright show-report reports/html --print-config > /dev/null 2>&1 || true;
-            exit 0"
-        '''
-      }
-    }
-
-    stage('Publish Reports') {
-      steps {
-        junit allowEmptyResults: true, testResults: 'reports/junit/results.xml'
-        publishHTML([
-          reportDir: 'playwright-report',
-          reportFiles: 'index.html',
-          reportName: 'Playwright HTML Report',
-          keepAll: true,
-          alwaysLinkToLastBuild: true,
-          linkTarget: '_blank'
-        ])
-      }
-    }
-  }
-}
-```
-## 5️⃣ Run the Pipeline
+✔ 5. Run the Pipeline
 In Jenkins → open your job → click Build Now
 
 You’ll see:
