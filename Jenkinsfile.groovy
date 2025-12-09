@@ -11,11 +11,14 @@ pipeline {
     stage('Verify mount') {
       steps {
         sh '''
+          set -eux
+          rm -rf playwright-report
           echo "--- tests under /host_project/tests ---"
           find /host_project/tests -maxdepth 2 -type f -printf '%P\n' || true
         '''
       }
     }
+
 
     stage('Install & Test in Playwright image') {
       steps {
@@ -58,7 +61,6 @@ pipeline {
         }
       }
     }
-
 
     stage('Publish & Archive') {
       steps {
