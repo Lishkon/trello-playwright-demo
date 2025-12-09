@@ -1,41 +1,133 @@
-# Playwright Test Automation Framework
+# 🎯 Trello Playwright Demo - UI Test Automation + Dockerized Jenkins CI
 
-This is a modular, scalable Playwright testing framework designed for end-to-end testing of modern web apps.
+This project is a real-world demonstration of building a modern UI test automation framework using Playwright, combined with DevOps practices sush as:
+
+- Containerized Jenkins (Dockerized CI environment)
+- Automated test execution inside Playwright Linux images
+- HTML reporting + artifact archiving
+- Pipeline debugging, permission handling, and report publishing
+
+---
 
 ## 🚀 Features
+
+### ✔ Playwright Test Automation
+
 - Page Object Model
-- Test data generation and parameterization
-- Environment-based test execution
-- HTML and Allure reporting
-- CI-friendly configuration
+- TOTP helper for authentication
+- Stable selector architecture
+- Cross-browser testing (Chromium, Firefox, WebKit)
 
-## 📁 Structure
-- `tests/` – Test specs
-- `pages/` – Page Object files
-- `selectors/` – Page Object related selectors
-- `utils/` – Helpers and utilities
-- `playwright.config.ts` – Main config file
+### ✔ DevOps / CI/CD
 
-## 🧪 How to Run Locally
+- Jenkins running inside Docker
+- CI-mode Playwright runs (no GUI server, no hanging)
+- Automated HTML report publishing
+- Test artifact collection
+- Clean pipeline retry logic & container isolation
+
+### ✔ Stability Improvements
+
+- Consistent error handling
+- Corrected report duplication
+- Fixed CI `reporter` brhavior
+- Resolved Jenkins <docker.sock> permission limitations
+
+---
+
+## ⚙️ Prerequisites
+
+You need the following installed locally:
+
+- [] Docker Desktop
+- [] Jenkins (Dockerized version)
+- [] Node.js
+- [] Git
+
+👉 You do NOT need Playwright installed locally.
+The tests run fully inside Dockerized Playwright images.
+
+--- 
+
+## 🧪 Running Tests Locally (Optional, No Docker/Jenkins reqiored)
+
+1. Install dependencies: `npm install`
+2. Run all tests: `npx playwright test`
+3. Run only login tests: `npx playwright test tests/login.spec.ts`
+4. View Playwrght HTML Report: `npx playwright show-report`
+
+---
+
+## 🐳 Running the Jenkins CI Pipeline
+
+1. Build Jenkins image
+
 ```bash
-npm install
-npx playwright test
-npx playwright show-report
+docker build -t trello-playwright-demo-jenkins -f Dockerfile.jenkins .
 ```
-## 🧩 Running the Framework with Jenkins (Docker CI/CD Setup)
-This section explains how to run the same framework using a local Jenkins CI/CD pipeline inside Docker.
-It’s designed for demonstration, learning, or portfolio purposes.
 
-## 🐋 Prerequisites
+2. Run Jenkins container
 
-- Docker Desktop
-- Git
-- (Optional) Node.js for local debugging
-
-Check versions:
 ```bash
-docker -v
-docker compose version
+docker run -d ^
+  --name trello-jenkins ^
+  -u root ^
+  -p 4000:8080 ^
+  -p 50000:50000 ^
+  -v jenkins-data:/var/jenkins_home ^
+  -v //var/run/docker.sock:/var/run/docker.sock ^
+  -v "C:\Users\<YOU>\trello-playwright-demo":/host_project ^
+  trello-playwright-demo-jenkins
+```
+
+3. Open Jenkins
+
+Go to:
+```bash
+http://localhost:4000
+```
+
+4. Create a Pipeline
+
+Choose:
+
+Pipeline -> Pipeline script from SCM
+Repo URL: `https://github.com/Lishkon/trello-playwright-demo.gi`
+
+Jenkins will automatically:
+- Launch Playwright test container
+- Install dependencies
+- Run tests in CI mode
+- Copy out `playwright-report`
+- Publish it as a clickable HTML report 🎉
+
+---
+
+## 🛠️ Troubleshooting & Challenges Solved
+
+✔ 1. Docker socket permission denied
+
+Solved by running Jenkins as root inside the container (`-u root`).
+
+✔ 2. Playwright HTML report not generating
+
+Playwright GUI server was stuck -> fixed by using:
+
+```bash
+CI=1 npx playwright test
+```
+
+✔ 3. Reporter path duplication
+
+Playwright sometimes generated nested `/playwright-report/playwright-report` folders.
+Solution: clean workspace & enforce correct output directory.
+
+✔ 4. HTML Publisher plugin showing empty page
+
+Caused by incorrect path.
+Fixed by publishing:
+```bash
+playwright-report/index.html
 ```
 
 ## ⚙️ Step-by-Step Jenkins Setup
