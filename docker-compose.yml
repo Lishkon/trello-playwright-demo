@@ -1,8 +1,8 @@
-version: "3.8"
-
 services:
   jenkins:
-    image: jenkins/jenkins:lts-jdk17
+    build:
+      context: .
+      dockerfile: Dockerfile.jenkins   # your custom image with docker-ce-cli
     container_name: jenkins
     ports:
       - "8080:8080"
@@ -10,10 +10,9 @@ services:
     volumes:
       - jenkins_home:/var/jenkins_home
       - .:/host_project
-      - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      JAVA_OPTS: >-
-        -Dhudson.model.DirectoryBrowserSupport.CSP="sandbox allow-scripts; default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; connect-src 'self' data: blob:"
+      # point Docker CLI to Desktop's TCP daemon (enable it in Docker Desktop settings)
+      - DOCKER_HOST=tcp://host.docker.internal:2375
 
 volumes:
   jenkins_home:

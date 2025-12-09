@@ -24,4 +24,8 @@ export class Boards {
         await this.boardTitle.fill(boardname);
         await this.createButton.click();
     }
+
+    async findBoard(boardname: string) {
+        return this.page.locator(`a[aria-label='${boardname}']`);
+    }
 }
