@@ -65,16 +65,20 @@ pipeline {
         script {
           sh '''
             set -eux
+
             echo "Workspace: $PWD"
+
+            # Copy the HTML report from the test container into this workspace
             docker cp pw-tests:/work/playwright-report ./playwright-report || echo "No report directory to copy"
+
             echo "Contents of workspace after docker cp:"
             ls -R .
           '''
 
-          // Archive the raw files (optional but useful)
+          // 1) Archive the raw report files (optional but useful)
           archiveArtifacts artifacts: 'playwright-report/**', fingerprint: true, allowEmptyArchive: true
 
-          // Publish a nice HTML report tab
+          // 2) Publish HTML report so it shows as a tab in Jenkins
           publishHTML(target: [
             reportDir: 'playwright-report',
             reportFiles: 'index.html',
@@ -91,6 +95,5 @@ pipeline {
         }
       }
     }
-
   }
 }
