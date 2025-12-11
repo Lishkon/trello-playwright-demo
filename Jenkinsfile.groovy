@@ -40,7 +40,7 @@ pipeline {
                     apt-get install -y git
                   fi
 
-                  git clone --branch master --single-branch \
+                  git clone --branch main --single-branch \
                     https://github.com/Lishkon/trello-playwright-demo.git /work
                   cd /work
 
