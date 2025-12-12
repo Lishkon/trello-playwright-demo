@@ -23,45 +23,52 @@ pipeline {
     stage('Install & Test in Playwright image') {
       steps {
         script {
-          int exitCode = sh(
-            script: '''
+          withCredentials([
+          usernamePassword(
+              credentialsId: 'trello-e2e-valid-user',
+              usernameVariable: 'E2E_VALID_USER',
+              passwordVariable: 'E2E_VALID_PASS'
+          ),
+          usernamePassword(
+              credentialsId: 'trello-e2e-invalid-user',
+              usernameVariable: 'E2E_INVALID_USER',
+              passwordVariable: 'E2E_INVALID_PASS'
+          ),
+          string(
+              credentialsId: 'TOTP_SECRET',
+              variable: 'TOTP_SECRET'
+          )
+      ]) {
+            sh '''
               set -eux
 
-              # Make sure any old container with the same name is gone
               docker rm -f pw-tests || true
 
               docker run --name pw-tests --pull=missing \
+                -e CI=1 \
+                -e E2E_VALID_USER=$E2E_VALID_USER \
+                -e E2E_VALID_PASS=$E2E_VALID_PASS \
+                -e E2E_INVALID_USER=$E2E_INVALID_USER \
+                -e E2E_INVALID_PASS=$E2E_INVALID_PASS \
+                -e TOTP_SECRET=$TOTP_SECRET \
                 mcr.microsoft.com/playwright:v1.53.2-jammy \
-                bash -lc '
+                bash -lc "
                   set -euxo pipefail
-
                   if ! command -v git >/dev/null 2>&1; then
                     apt-get update
                     apt-get install -y git
                   fi
-
-                  git clone --branch main --single-branch \
-                    https://github.com/Lishkon/trello-playwright-demo.git /work
+                  git clone --branch main --single-branch https://github.com/Lishkon/trello-playwright-demo.git /work
                   cd /work
-
-                  node -v; npm -v
                   npm install
-
-                  # Force CI=1 only for this command so Playwright writes the report and EXITS
                   CI=1 npx playwright test tests/login.spec.ts --reporter=html
-
-                '
-            ''',
-            returnStatus: true
-          )
-
-          // Tests failed? Mark build as UNSTABLE, but KEEP GOING so we can still get the report
-          if (exitCode != 0) {
-            currentBuild.result = 'UNSTABLE'
+                "
+            '''
           }
         }
       }
     }
+
 
     stage('Publish & Archive') {
       steps {
@@ -78,10 +85,10 @@ pipeline {
             ls -R .
           '''
 
-          // 1) Archive the raw report files (optional but useful)
+          // Archive the raw report files (optional but useful)
           archiveArtifacts artifacts: 'playwright-report/**', fingerprint: true, allowEmptyArchive: true
 
-          // 2) Publish HTML report so it shows as a tab in Jenkins
+          // Publish HTML report so it shows as a tab in Jenkins
           publishHTML(target: [
             reportDir: 'playwright-report',
             reportFiles: 'index.html',
