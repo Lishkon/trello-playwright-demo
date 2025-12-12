@@ -46,11 +46,11 @@ pipeline {
 
               docker run --name pw-tests --pull=missing \
                 -e CI=1 \
-                -e E2E_VALID_USER=$E2E_VALID_USER \
-                -e E2E_VALID_PASS=$E2E_VALID_PASS \
-                -e E2E_INVALID_USER=$E2E_INVALID_USER \
-                -e E2E_INVALID_PASS=$E2E_INVALID_PASS \
-                -e TOTP_SECRET=$TOTP_SECRET \
+                -e USER_EMAIL=${E2E_VALID_USER} \
+                -e USER_PASSWORD=${E2E_VALID_PASS} \
+                -e INVALID_USER_EMAIL=${E2E_INVALID_USER} \
+                -e INVALID_USER_PASSWORD=${E2E_INVALID_PASS} \
+                -e TOTP_SECRET=${TOTP_SECRET} \
                 mcr.microsoft.com/playwright:v1.53.2-jammy \
                 bash -lc "
                   set -euxo pipefail
