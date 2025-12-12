@@ -39,17 +39,17 @@ This project is a real-world demonstration of building a modern UI test automati
 
 You need the following installed locally:
 
-- [] Docker Desktop
-- [] Jenkins (Dockerized version)
-- [] Node.js
-- [] Git
+- [ ] Docker Desktop
+- [ ] Jenkins (Dockerized version)
+- [ ] Node.js
+- [ ] Git
 
 👉 You do NOT need Playwright installed locally.
 The tests run fully inside Dockerized Playwright images.
 
 --- 
 
-## 🔐 Environment Variables Setup
+## 🔐 Environment Variables Setup - Local execution only
 
 This project requires a `.env` file to store sensitive configuration values such as login credentials used by Playwright tests.
 The `.env` file is not included in source control (it's ignored through `.gitignore`), so you must create it manually before running tests.
@@ -65,7 +65,9 @@ trello-playwright-demo/
 ...
 ```
 2. Add the required environment variables
-Here is the template you should include in your README:
+   
+Store your credentials within the `.env` file:
+
 ```bash
 # ------------------------------
 # Playwright Test Environment
@@ -86,7 +88,79 @@ TOTP_SECRET=your-base32-secret-key
 Playwright loads `.env` automatically via dotenv (or via your helper functions loading from `process.env`).
 
 > ⚠️ IMPORTANT: Never commit .env
+> Use the Jenkin's Credentials to run the tests in CI/CD
  
+4. Set up the Jenkins Credentials - needed for running the tests in CI/CD:
+
+Open the pipeline -> Configure -> Proceed to Pipeline section -> In the Repositories subsection, click on "+ Add" next to the Credentials field
+
+Examples for your Trello project:
+- `trello-e2e-user` – type: “Username with password”
+- `trello-e2e-totp-secret` – type: “Secret text”
+- Any API keys, etc. – also “Secret text”
+
+Jenkins will encrypt these at rest and mask them in logs.
+
+Inject the secrets into the Jenkinsfile in the 'Install & Test in Playwright image' stage:
+
+```bash
+steps{
+  script {
+      withCredentials([
+      usernamePassword(
+          credentialsId: 'trello-e2e-valid-user',
+          usernameVariable: 'E2E_VALID_USER',
+          passwordVariable: 'E2E_VALID_PASS'
+      ),
+      usernamePassword(
+          credentialsId: 'trello-e2e-invalid-user',
+          usernameVariable: 'E2E_INVALID_USER',
+          passwordVariable: 'E2E_INVALID_PASS'
+      ),
+      string(
+          credentialsId: 'TOTP_SECRET',
+          variable: 'TOTP_SECRET'
+      )
+    ]) {
+        // sh(...) here
+    }
+  }
+}
+```
+
+Update the shell script to use the variables as parameters:
+
+```bash
+steps{
+  script {
+      withCredentials([
+        // ...
+        // Credential variables
+        // ...
+    ]) {
+        sh '''
+              set -eux
+
+              docker rm -f pw-tests || true
+
+              docker run --name pw-tests --pull=missing \
+                -e CI=1 \
+                -e USER_EMAIL=${E2E_VALID_USER} \
+                -e USER_PASSWORD=${E2E_VALID_PASS} \
+                -e INVALID_USER_EMAIL=${E2E_INVALID_USER} \
+                -e INVALID_USER_PASSWORD=${E2E_INVALID_PASS} \
+                -e TOTP_SECRET=${TOTP_SECRET} \
+                // ...
+                // rest of the script
+                // ...
+                "
+            '''
+    }
+  }
+}
+```
+Commit the changes and push to the origin branch.
+
 --- 
 
 ## 🧪 Running Tests Locally (Optional, No Docker/Jenkins reqiored)
@@ -134,8 +208,8 @@ Choose:
 - Pipeline -> Pipeline script from SCM -> SCM: Git
 - Expand the Repositories:
 - Repo URL: `https://github.com/Lishkon/trello-playwright-demo.gi`
-- Add the new credentials and make sure they show in the Credentials field
-- Enter `*/master` as a Branch Specifier
+- Add the new credentials and make sure they show in the Credentials field - Refer to step 4 of the previous section
+- Enter `*/main` as a Branch Specifier
 - Provide `Jenkinsfile.groovy` asthe Script Path option
 
 Jenkins will automatically:
@@ -184,10 +258,10 @@ You’ll see:
 🖥 Full Playwright HTML report available as an artifact
 
 ## 7️⃣ Maintenance Commands
-| Command	                                    | Description                |
+| Command	                                      | Description                |
 | --------------------------------------------- | -------------------------- |
 | docker compose ps	                            | Show running containers    |
-| docker compose down	                        | Stop Jenkins               |
+| docker compose down	                          | Stop Jenkins               |
 | docker exec -it jenkins bash	                | Open Jenkins shell         |
 | docker logs jenkins --tail=50                 | View Jenkins logs          |
 | docker volume rm playwright-demo_jenkins_home	| Reset Jenkins completely   |
