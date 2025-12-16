@@ -1,4 +1,5 @@
 import {test, expect} from '@playwright/test';
+import { faker } from '@faker-js/faker';
 import { Boards } from '../pages/Boards-Page';
 import { URL } from '../data/constants';
 
@@ -10,9 +11,9 @@ test.describe("Sample test for Boards page", () => {
         await page.goto(URL.E2E.PROD);
     })
 
-    test("Creating a board", async ({page}) => {
-        let boardName = "tesddt233";
+    test("Creating a board", async ({}) => {
+        let boardName = faker.company.buzzAdjective() + " board";
         await boardsPage.createBoard(boardName);
-        expect(boardsPage.findBoard(boardName)).toBeFalsy;
+        expect(await boardsPage.getCurrentCompanydName()).toBe(boardName);
     })
 })

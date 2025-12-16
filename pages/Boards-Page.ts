@@ -1,10 +1,11 @@
-import { Locator, Page } from "@playwright/test";
-import { BoardsTabMenuSelectors, CreateBoardTileSelectors } from "../selectors/boards-selectors";
+import { Locator, Page, expect } from "@playwright/test";
+import { BoardsTabMenuSelectors, CreateBoardTileSelectors, CurrentBoardSelectors } from "../selectors/boards-selectors";
 
 export class Boards {
     readonly page: Page;
     readonly createMenuButton: Locator;
     readonly createBoardButton: Locator;
+    readonly currentBoardSelector: Locator;
     readonly startWithTemplateButton: Locator;
     readonly boardTitle: Locator;
     readonly createButton: Locator;
@@ -13,6 +14,7 @@ export class Boards {
         this.page = page;
         this.createMenuButton = page.locator(BoardsTabMenuSelectors.createMenuButton);
         this.createBoardButton = page.locator(BoardsTabMenuSelectors.createBoardButton);
+        this.currentBoardSelector = page.locator(CurrentBoardSelectors.currentBoardTitle);
         this.startWithTemplateButton = page.locator(BoardsTabMenuSelectors.startWithTemplateButton);
         this.boardTitle = page.locator(CreateBoardTileSelectors.boardTitle);
         this.createButton = page.locator(CreateBoardTileSelectors.createButton);
@@ -27,5 +29,9 @@ export class Boards {
 
     async findBoard(boardname: string) {
         return this.page.locator(`a[aria-label='${boardname}']`);
+    }
+
+    async getCurrentCompanydName() {
+        return this.currentBoardSelector.innerText();
     }
 }

@@ -8,3 +8,7 @@ export const CreateBoardTileSelectors = {
     "boardTitle": "input[data-testid='create-board-title-input']",
     "createButton": "button[data-testid='create-board-submit-button']"
 }
+
+export const CurrentBoardSelectors = {
+    "currentBoardTitle": "div[data-testid='board-name-container']"
+}
