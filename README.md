@@ -1,11 +1,29 @@
 # 🎯 Trello Playwright Demo - UI Test Automation + Dockerized Jenkins CI
 
-This project is a real-world demonstration of building a modern UI test automation framework using Playwright, combined with DevOps practices sush as:
+This project is a real-world demonstration of building a modern UI test automation framework using Playwright, combined with DevOps practices such as:
 
 - Containerized Jenkins (Dockerized CI environment)
 - Automated test execution inside Playwright Linux images
 - HTML reporting + artifact archiving
 - Pipeline debugging, permission handling, and report publishing
+
+## 📑 Table of Contents
+- [🎯 Trello Playwright Demo - UI Test Automation + Dockerized Jenkins CI](#-trello-playwright-demo---ui-test-automation--dockerized-jenkins-ci)
+  - [📑 Table of Contents](#-table-of-contents)
+  - [🚀 Features](#-features)
+    - [✔ Playwright Test Automation](#-playwright-test-automation)
+    - [✔ DevOps / CI/CD](#-devops--cicd)
+    - [✔ Stability Improvements](#-stability-improvements)
+  - [⚙️ Prerequisites](#️-prerequisites)
+  - [Project Structure](#project-structure)
+  - [🔐 Environment Variables Setup - Local execution only](#-environment-variables-setup---local-execution-only)
+  - [🧪 Running Tests Locally (Optional, No Docker/Jenkins required)](#-running-tests-locally-optional-no-dockerjenkins-required)
+  - [🐳 Running the Jenkins CI Pipeline](#-running-the-jenkins-ci-pipeline)
+  - [🛠️ Troubleshooting \& Challenges Solved](#️-troubleshooting--challenges-solved)
+  - [Maintenance Commands](#maintenance-commands)
+  - [🧾 Example Output](#-example-output)
+  - [💡 Next Steps](#-next-steps)
+
 
 ---
 
@@ -30,7 +48,7 @@ This project is a real-world demonstration of building a modern UI test automati
 
 - Consistent error handling
 - Corrected report duplication
-- Fixed CI `reporter` brhavior
+- Fixed CI `reporter` behavior
 - Resolved Jenkins <docker.sock> permission limitations
 
 ---
@@ -47,7 +65,23 @@ You need the following installed locally:
 👉 You do NOT need Playwright installed locally.
 The tests run fully inside Dockerized Playwright images.
 
---- 
+---
+## Project Structure
+
+``` bash
+trello-playwright-demo/
+├── .env # Environment variables (local only, gitignored)
+├── Dockerfile.jenkins # Custom Jenkins image
+├── Jenkinsfile.groovy # CI/CD pipeline definition
+├── playwright.config.js # Playwright configuration
+├── data/ # Test data constants
+├── helpers/ # TOTP and utility helpers
+├── pages/ # Page Object Model classes
+├── selectors/ # Centralized selectors
+└── tests/ # Test specifications
+```
+
+---
 
 ## 🔐 Environment Variables Setup - Local execution only
 
@@ -77,7 +111,7 @@ Store your credentials within the `.env` file:
 INVALID_USER_EMAIL=your-invalid-email
 INVALID_USER_PASSWORD=your-invalid-password
 USER_EMAIL=your-valid-email
-USER_PASSWORD=your-invalid-password
+USER_PASSWORD=your-valid-password
 
 # 2FA / TOTP (if applicable)
 TOTP_SECRET=your-base32-secret-key
@@ -163,12 +197,12 @@ Commit the changes and push to the origin branch.
 
 --- 
 
-## 🧪 Running Tests Locally (Optional, No Docker/Jenkins reqiored)
+## 🧪 Running Tests Locally (Optional, No Docker/Jenkins required)
 
 1. Install dependencies: `npm install`
 2. Run all tests: `npx playwright test`
 3. Run only login tests: `npx playwright test tests/login.spec.ts`
-4. View Playwrght HTML Report: `npx playwright show-report`
+4. View Playwright HTML Report: `npx playwright show-report`
 
 ---
 
@@ -207,10 +241,10 @@ Choose:
 
 - Pipeline -> Pipeline script from SCM -> SCM: Git
 - Expand the Repositories:
-- Repo URL: `https://github.com/Lishkon/trello-playwright-demo.gi`
+- Repo URL: `https://github.com/Lishkon/trello-playwright-demo.git`
 - Add the new credentials and make sure they show in the Credentials field - Refer to step 4 of the previous section
 - Enter `*/main` as a Branch Specifier
-- Provide `Jenkinsfile.groovy` asthe Script Path option
+- Provide `Jenkinsfile.groovy` as the Script Path option
 
 Jenkins will automatically:
 - Launch Playwright test container
@@ -257,14 +291,14 @@ You’ll see:
 ✅ Test result summary in Jenkins
 🖥 Full Playwright HTML report available as an artifact
 
-## 7️⃣ Maintenance Commands
+##  Maintenance Commands
 | Command	                                      | Description                |
 | --------------------------------------------- | -------------------------- |
 | docker compose ps	                            | Show running containers    |
 | docker compose down	                          | Stop Jenkins               |
-| docker exec -it jenkins bash	                | Open Jenkins shell         |
-| docker logs jenkins --tail=50                 | View Jenkins logs          |
-| docker volume rm playwright-demo_jenkins_home	| Reset Jenkins completely   |
+| docker exec -it trello-jenkins bash	          | Open Jenkins shell         |
+| docker logs trello-jenkins --tail=50          | View Jenkins logs          |
+| docker volume rm jenkins-data               	| Reset Jenkins completely   |
 
 ## 🧾 Example Output
 ```java
