@@ -17,6 +17,7 @@ This project is a real-world demonstration of building a modern UI test automati
   - [⚙️ Prerequisites](#️-prerequisites)
   - [Project Structure](#project-structure)
   - [🔐 Environment Variables Setup - Local execution only](#-environment-variables-setup---local-execution-only)
+  - [🔐 Environment Variables Setup - Local execution only](#-environment-variables-setup---local-execution-only-1)
   - [🧪 Running Tests Locally (Optional, No Docker/Jenkins required)](#-running-tests-locally-optional-no-dockerjenkins-required)
   - [🐳 Running the Jenkins CI Pipeline](#-running-the-jenkins-ci-pipeline)
   - [🛠️ Troubleshooting \& Challenges Solved](#️-troubleshooting--challenges-solved)
@@ -61,6 +62,10 @@ You need the following installed locally:
 - [ ] Jenkins (Dockerized version)
 - [ ] Node.js
 - [ ] Git
+- [ ] Docker Desktop
+- [ ] Jenkins (Dockerized version)
+- [ ] Node.js
+- [ ] Git
 
 👉 You do NOT need Playwright installed locally.
 The tests run fully inside Dockerized Playwright images.
@@ -84,6 +89,7 @@ trello-playwright-demo/
 ---
 
 ## 🔐 Environment Variables Setup - Local execution only
+## 🔐 Environment Variables Setup - Local execution only
 
 This project requires a `.env` file to store sensitive configuration values such as login credentials used by Playwright tests.
 The `.env` file is not included in source control (it's ignored through `.gitignore`), so you must create it manually before running tests.
@@ -99,6 +105,9 @@ trello-playwright-demo/
 ...
 ```
 2. Add the required environment variables
+   
+Store your credentials within the `.env` file:
+
    
 Store your credentials within the `.env` file:
 
