@@ -106,8 +106,8 @@ pipeline {
             # Copy the HTML report from the test container into this workspace
             docker cp pw-tests:/work/playwright-report ./playwright-report || echo "No report directory to copy"
 
-            echo "Contents of workspace after docker cp:"
-            ls -R .
+            // echo "Contents of workspace after docker cp:"
+            // ls -R .
           '''
 
           // Archive the raw report files (optional but useful)
