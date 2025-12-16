@@ -17,7 +17,6 @@ This project is a real-world demonstration of building a modern UI test automati
   - [⚙️ Prerequisites](#️-prerequisites)
   - [Project Structure](#project-structure)
   - [🔐 Environment Variables Setup - Local execution only](#-environment-variables-setup---local-execution-only)
-  - [🔐 Environment Variables Setup - Local execution only](#-environment-variables-setup---local-execution-only-1)
   - [🧪 Running Tests Locally (Optional, No Docker/Jenkins required)](#-running-tests-locally-optional-no-dockerjenkins-required)
   - [🐳 Running the Jenkins CI Pipeline](#-running-the-jenkins-ci-pipeline)
   - [🛠️ Troubleshooting \& Challenges Solved](#️-troubleshooting--challenges-solved)
@@ -88,7 +87,6 @@ trello-playwright-demo/
 
 ---
 
-## 🔐 Environment Variables Setup - Local execution only
 ## 🔐 Environment Variables Setup - Local execution only
 
 This project requires a `.env` file to store sensitive configuration values such as login credentials used by Playwright tests.
