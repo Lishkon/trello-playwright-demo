@@ -7,18 +7,39 @@ pipeline {
 
   options { timestamps() }
 
+  triggers {
+    cron('0 0 * * *')
+
+    // Poll SCM every 5 minutes to detect new commits
+    // Note: for better performance, configure a webhook in your Git repository
+    // instead of polling (Settings -> Webhooks in Github/GitLab)
+    pollSCM('H/5 * * * *') // Comment this out when Webhook is implemented
+  }
+
   stages {
-    stage('Verify mount') {
-      steps {
-        sh '''
-          set -eux
-          rm -rf playwright-report
-          echo "--- tests under /host_project/tests ---"
-          find /host_project/tests -maxdepth 2 -type f -printf '%P\n' || true
-        '''
+    stage('Determine Build Type') {
+      steps{
+        script {
+          // Check if this build was triggered by the cron schedule (nightly)
+          def isNightlyBuild = currentBuild.getBuildCauses('hudson.triggers.TimerTrigger$TimerTriggerCause').size() > 0
+          
+          env.IS_NIGHTLY = isNightlyBuild.toString()
+          env.TEST_SUITE = isNightlyBuild ? 'tests/' : 'tests/login.spec.ts'
+
+          echo "==================================================="
+          
+          if(isNightlyBuild) {
+            echo "Build Type: NIGHTLY BUILD"
+            echo "Test Suite: Full Regression (all tests)"
+          } else {
+            echo "Build Type: COMMIT-TRIGGERED BUILD"
+            echo "Test Suite: Smoke tests (login.spec.ts)"
+          }
+
+          echo "==================================================="
+        }
       }
     }
-
 
     stage('Install & Test in Playwright image') {
       steps {
@@ -51,6 +72,7 @@ pipeline {
                 -e INVALID_USER_EMAIL=${E2E_INVALID_USER} \
                 -e INVALID_USER_PASSWORD=${E2E_INVALID_PASS} \
                 -e TOTP_SECRET=${TOTP_SECRET} \
+                -e TEST_SUITE = ${TEST_SUITE} \
                 mcr.microsoft.com/playwright:v1.53.2-jammy \
                 bash -lc "
                   set -euxo pipefail
@@ -61,7 +83,7 @@ pipeline {
                   git clone --branch main --single-branch https://github.com/Lishkon/trello-playwright-demo.git /work
                   cd /work
                   npm install
-                  CI=1 npx playwright test tests/login.spec.ts --reporter=html
+                  CI=1 npx playwright test ${TEST_SUITE} --reporter=html
                 "
             '''
           }
