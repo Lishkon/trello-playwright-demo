@@ -72,7 +72,7 @@ pipeline {
                 -e INVALID_USER_EMAIL=${E2E_INVALID_USER} \
                 -e INVALID_USER_PASSWORD=${E2E_INVALID_PASS} \
                 -e TOTP_SECRET=${TOTP_SECRET} \
-                -e TEST_SUITE = ${TEST_SUITE} \
+                -e TEST_SUITE=${TEST_SUITE} \
                 mcr.microsoft.com/playwright:v1.53.2-jammy \
                 bash -lc "
                   set -euxo pipefail
