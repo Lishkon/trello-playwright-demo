@@ -100,6 +100,9 @@ pipeline {
 
             echo "Workspace: $PWD"
 
+            # Remove old report directory to prevent nesting
+            rm -rf playwright-report
+
             # Copy the HTML report from the test container into this workspace
             docker cp pw-tests:/work/playwright-report ./playwright-report || echo "No report directory to copy"
 
