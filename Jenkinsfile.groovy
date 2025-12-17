@@ -61,32 +61,33 @@ pipeline {
           )
       ]) {
             sh '''
-              set -eux
+                set -eux
 
-              docker rm -f pw-tests || true
+                # Enhanced container cleanup
+                docker stop pw-tests 2>/dev/null || true
+                docker rm -f pw-tests 2>/dev/null || true
+                
+                # Verify it's gone
+                docker ps -a | grep pw-tests || echo "Container successfully removed"
 
-              docker run --name pw-tests --pull=missing \
-                -e CI=1 \
-                -e USER_EMAIL=${E2E_VALID_USER} \
-                -e USER_PASSWORD=${E2E_VALID_PASS} \
-                -e INVALID_USER_EMAIL=${E2E_INVALID_USER} \
-                -e INVALID_USER_PASSWORD=${E2E_INVALID_PASS} \
-                -e TOTP_SECRET=${TOTP_SECRET} \
-                -e TEST_SUITE=${TEST_SUITE} \
-                mcr.microsoft.com/playwright:v1.53.2-jammy \
-                bash -lc "
-                  set -euxo pipefail
-                  if ! command -v git >/dev/null 2>&1; then
-                    apt-get update
-                    apt-get install -y git
-                  fi
-                  rm -rf /work/*
-                  git clone --branch main --single-branch https://github.com/Lishkon/trello-playwright-demo.git /work
-                  cd /work
-                  npm install
-                  CI=1 npx playwright test ${TEST_SUITE} --reporter=html
-                "
-            '''
+                docker run --name pw-tests --pull=missing --rm \  # Add --rm flag
+                  -e CI=1 \
+                  -e USER_EMAIL=${E2E_VALID_USER} \
+                  ...
+                  bash -lc "
+                    set -euxo pipefail
+                    if ! command -v git >/dev/null 2>&1; then
+                      apt-get update
+                      apt-get install -y git
+                    fi
+                    rm -rf /work        # Changed from /work/* to /work
+                    mkdir -p /work      # Recreate directory
+                    git clone --branch main --single-branch https://github.com/Lishkon/trello-playwright-demo.git /work
+                    cd /work
+                    npm install
+                    CI=1 npx playwright test ${TEST_SUITE} --reporter=html
+                  "
+              '''
           }
         }
       }
