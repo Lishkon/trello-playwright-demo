@@ -80,6 +80,7 @@ pipeline {
                     apt-get update
                     apt-get install -y git
                   fi
+                  rm -rf /work/*
                   git clone --branch main --single-branch https://github.com/Lishkon/trello-playwright-demo.git /work
                   cd /work
                   npm install
