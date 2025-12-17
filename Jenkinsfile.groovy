@@ -80,8 +80,8 @@ pipeline {
                       apt-get update
                       apt-get install -y git
                     fi
-                    rm -rf /work        # Changed from /work/* to /work
-                    mkdir -p /work      # Recreate directory
+                    rm -rf /work
+                    mkdir -p /work    
                     git clone --branch main --single-branch https://github.com/Lishkon/trello-playwright-demo.git /work
                     cd /work
                     npm install
