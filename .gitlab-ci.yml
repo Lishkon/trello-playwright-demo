@@ -38,7 +38,7 @@ playwright-tests:
   stage: test
   image: docker:latest
   services:
-    - docker:bind 
+    - docker:dind 
   dependencies:
     - determine-build-type
   before_script:
