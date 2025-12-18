@@ -73,7 +73,6 @@ pipeline {
                 docker run --name pw-tests --pull=missing --rm \
                   -e CI=1 \
                   -e USER_EMAIL=${E2E_VALID_USER} \
-                  ...
                   bash -lc "
                     set -euxo pipefail
                     if ! command -v git >/dev/null 2>&1; then
@@ -88,7 +87,6 @@ pipeline {
                     mkdir -p auth
                     CI=1 npx playwright test ${TEST_SUITE} --reporter=html
                   "
-              '''
           }
         }
       }
