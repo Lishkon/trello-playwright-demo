@@ -60,6 +60,8 @@ playwright-tests:
           cd /work
           npm install
           CI=1 npx playwright test ${TEST_SUITE} --reporter=html
+          echo "Generating the report.........................."
+          npx playwright show-report
         "
       - docker cp pw-tests:/work/playwright-report ./playwright-report
   after_script:
