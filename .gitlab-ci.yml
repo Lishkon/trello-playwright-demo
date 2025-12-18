@@ -30,7 +30,7 @@ determine-build-type:
       fi
       echo "===================================================================="
   artifacts:
-    repotts:
+    reports:
       dotenv: build.env
 
 # Run Playwright tests
