@@ -70,7 +70,7 @@ pipeline {
                 # Verify it's gone
                 docker ps -a | grep pw-tests || echo "Container successfully removed"
 
-                docker run --name pw-tests --pull=missing --rm \  # Add --rm flag
+                docker run --name pw-tests --pull=missing --rm \
                   -e CI=1 \
                   -e USER_EMAIL=${E2E_VALID_USER} \
                   ...
