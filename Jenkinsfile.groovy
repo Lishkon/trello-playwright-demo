@@ -73,6 +73,12 @@ pipeline {
                 docker run --name pw-tests --pull=missing --rm \
                   -e CI=1 \
                   -e USER_EMAIL=${E2E_VALID_USER} \
+                  -e USER_PASSWORD=${E2E_VALID_PASS} \
+                  -e INVALID_USER_EMAIL=${E2E_INVALID_USER} \
+                  -e INVALID_USER_PASSWORD=${E2E_INVALID_PASS} \
+                  -e TOTP_SECRET=${TOTP_SECRET} \
+                  -e TEST_SUITE=${TEST_SUITE} \
+                  mcr.microsoft.com/playwright:v1.53.2-jammy \
                   bash -lc "
                     set -euxo pipefail
                     if ! command -v git >/dev/null 2>&1; then
@@ -80,13 +86,14 @@ pipeline {
                       apt-get install -y git
                     fi
                     rm -rf /work
-                    mkdir -p /work    
+                    mkdir -p /work
                     git clone --branch main --single-branch https://github.com/Lishkon/trello-playwright-demo.git /work
                     cd /work
                     npm install
                     mkdir -p auth
                     CI=1 npx playwright test ${TEST_SUITE} --reporter=html
                   "
+              '''
           }
         }
       }
