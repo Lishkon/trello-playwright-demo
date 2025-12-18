@@ -85,6 +85,7 @@ pipeline {
                     git clone --branch main --single-branch https://github.com/Lishkon/trello-playwright-demo.git /work
                     cd /work
                     npm install
+                    mkdir -p auth
                     CI=1 npx playwright test ${TEST_SUITE} --reporter=html
                   "
               '''
