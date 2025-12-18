@@ -71,25 +71,25 @@ playwright-tests:
     expire_in: 30 days
   allow_failure: false
 
-  # Publish reports
-  publish-report:
-    stage: publish
-    image: alpine:latest
-    dependencies:
-      - playwright-tests
-    script:
-      - echo "Report published as artifact"
-      - ls -la playwright-report/
-    artifacts:
-      paths:
-        - playwright-report/
-      expose_as: "Playwright Test Report"
-    when: always
+# Publish reports
+publish-report:
+  stage: publish
+  image: alpine:latest
+  dependencies:
+    - playwright-tests
+  script:
+    - echo "Report published as artifact"
+    - ls -la playwright-report/
+  artifacts:
+    paths:
+      - playwright-report/
+    expose_as: "Playwright Test Report"
+  when: always
 
-    workflow:
-       rules:
-        - if: $CI_PIPELINE_SOURCE == "push"
-        - if: $CI_PIPELINE_SOURCE == "schedule"
-        - if: $CI_PIPELINE_SOURCE == "web"
+  workflow:
+      rules:
+      - if: $CI_PIPELINE_SOURCE == "push"
+      - if: $CI_PIPELINE_SOURCE == "schedule"
+      - if: $CI_PIPELINE_SOURCE == "web"
 
     
