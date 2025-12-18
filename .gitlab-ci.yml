@@ -59,7 +59,7 @@ playwright-tests:
           git clone --branch main --single-branch ${CI_REPOSITORY_URL} /work
           cd /work
           npm install
-          CI=1 npx playwright test ${TEST_SUITE} --reporter-html
+          CI=1 npx playwright test ${TEST_SUITE} --reporter=html
         "
       - docker cp pw-tests:/work/playwright-report ./playwright-report
   after_script:
