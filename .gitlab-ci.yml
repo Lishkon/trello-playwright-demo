@@ -86,10 +86,10 @@ publish-report:
     expose_as: "Playwright Test Report"
   when: always
 
-  workflow:
-      rules:
-      - if: $CI_PIPELINE_SOURCE == "push"
-      - if: $CI_PIPELINE_SOURCE == "schedule"
-      - if: $CI_PIPELINE_SOURCE == "web"
+workflow:
+    rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "web"
 
     
