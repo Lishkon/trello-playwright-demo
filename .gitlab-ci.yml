@@ -20,13 +20,13 @@ determine-build-type:
     - |
       echo "===================================================================="
       if [ "$CI_PIPELINE_SOURCE" = "schedule" ]; then
-        acho "Build Type: NIGHTLY BUILD"
-        acho "Test Suite: Full regression (all tests)"
-        acho "TEST_SUITE=tests/" >> build.env
+        echo "Build Type: NIGHTLY BUILD"
+        echo "Test Suite: Full regression (all tests)"
+        echo "TEST_SUITE=tests/" >> build.env
       else
-        acho "Build Type: COMMIT-TRIGGERED BUILD"
-        acho "Test Suite: Smoke tests (login.spec.ts)"
-        acho "TEST_SUITE=tests/login.spec.ts" >> build.env
+        echo "Build Type: COMMIT-TRIGGERED BUILD"
+        echo "Test Suite: Smoke tests (login.spec.ts)"
+        echo "TEST_SUITE=tests/login.spec.ts" >> build.env
       fi
       echo "===================================================================="
   artifacts:
