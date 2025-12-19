@@ -1,0 +1,19 @@
+## [Unreleased] - 2025-XX-XX
+
+### Fixed
+- **GitLab CI: Fixed Playwright test job failing with exit code 127**
+  - Issue: YAML indentation error caused bash to execute `-` as a command after tests completed
+  - Error: `/bin/sh: eval: line 191: -: not found`
+  - Fix: Corrected indentation of `docker cp` command in `.gitlab-ci.yml` from 4 spaces to 2 spaces
+  - Impact: Playwright HTML reports now properly copied from Docker container to GitLab artifacts
+  - File: `.gitlab-ci.yml` - `playwright-tests` job script section
+
+### Changed
+- **GitLab CI: Improved artifact handling for Playwright reports**
+  - HTML reports now successfully uploaded as job artifacts
+  - Reports accessible via GitLab UI "Browse" artifacts feature
+  - Artifacts retention set to 30 days
+
+### Technical Details
+- Fixed YAML literal block scalar (`|`) indentation issue where `docker cp` command was incorrectly nested within the bash script block instead of being a separate script list item
+- The `docker cp` command now executes as a separate GitLab CI script step, ensuring reports are extracted from the Docker container before cleanup
