@@ -81,11 +81,29 @@ publish-report:
   script:
     - echo "Report published as artifact"
     - ls -la playwright-report/
+    - echo "View report at ${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/"
   artifacts:
     paths:
       - playwright-report/
     expose_as: "Playwright Test Report"
   when: always
+
+# Add this as a NEW job after your existing publish-report
+pages:
+  stage: publish
+  image: alpine:latest
+  dependencies:
+    - playwright-tests
+  script:
+    - mkdir -p public
+    - cp -r playwright-report/* public/ || echo "No report found"
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"  # Only for main branch
+  when: always
+
 
 workflow:
     rules:
