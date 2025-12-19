@@ -81,7 +81,7 @@ publish-report:
   script:
     - echo "Report published as artifact"
     - ls -la playwright-report/
-    - echo "View report at ${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/"
+    - echo "View report at ${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/playwright-report/index.html"
   artifacts:
     paths:
       - playwright-report/
