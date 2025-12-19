@@ -4,6 +4,7 @@
 variables:
   PW_IMAGE: "mcr.microsoft.com/playwright:v1.53.2-jammy"
   # Determine test suite based on pipeline source
+  # Using login tests currently as an example to save timegi
   TEST_SUITE: "tests/login.spec.ts"
 
 # Define stages
@@ -61,7 +62,7 @@ playwright-tests:
           npm install
           CI=1 npx playwright test ${TEST_SUITE} --reporter=html
         "
-      - docker cp pw-tests:/work/playwright-report ./playwright-report
+    - docker cp pw-tests:/work/playwright-report ./playwright-report
   after_script:
     - docker rm -f pw-tests || true
   artifacts:
