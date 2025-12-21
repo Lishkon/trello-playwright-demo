@@ -7,6 +7,7 @@
   - Fix: Corrected indentation of `docker cp` command in `.gitlab-ci.yml` from 4 spaces to 2 spaces
   - Impact: Playwright HTML reports now properly copied from Docker container to GitLab artifacts
   - File: `.gitlab-ci.yml` - `playwright-tests` job script section
+  - Fix: Pipeline gets executed even if the tests fail and the report is still available just like in case with the successful test completion.
 
 ### Changed
 - **GitLab CI: Improved artifact handling for Playwright reports**
@@ -17,3 +18,6 @@
 ### Technical Details
 - Fixed YAML literal block scalar (`|`) indentation issue where `docker cp` command was incorrectly nested within the bash script block instead of being a separate script list item
 - The `docker cp` command now executes as a separate GitLab CI script step, ensuring reports are extracted from the Docker container before cleanup
+- Moved the `docker cp` command into the `after_script` section to prevent the preliminary failure when the test fails
+- Added the echoing of `Test completed with exit code $?` in order to improve debugging of the failed tests
+- Added the echoing of `Failed to copy report $?` into the `after_script` section in order to improve debugging of the failed tests
