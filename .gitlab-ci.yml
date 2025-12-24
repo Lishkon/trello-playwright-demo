@@ -73,24 +73,8 @@ playwright-tests:
     expire_in: 30 days
   allow_failure: false
 
-# Publish reports
+# Publish the playwright reports
 publish-report:
-  stage: publish
-  image: alpine:latest
-  dependencies:
-    - playwright-tests
-  script:
-    - echo "Report published as artifact"
-    - ls -la playwright-report/
-    - echo "View report at ${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/playwright-report/index.html"
-  artifacts:
-    paths:
-      - playwright-report/
-    expose_as: "Playwright Test Report"
-  when: always
-
-# Add this as a NEW job after your existing publish-report
-pages:
   stage: publish
   image: alpine:latest
   dependencies:
