@@ -62,11 +62,17 @@ stages:
           - checkout: self
             displayName: "Checkout Repository"
 
-          - script: |
-              echo "Test suite to run: $(TEST_SUITE_RESOLVED)"
+          - powershell: |
+              Write-Host "Test suite to run: $(TEST_SUITE_RESOLVED)"
             displayName: "Display Test Suite"
 
           - powershell: |
+              $testSuite = $env:TEST_SUITE_RESOLVED
+              $sourceDir = $env:BUILD_SOURCESDIRECTORY
+              $image = $env:PW_IMAGE
+              
+              Write-Host "Running tests for: $testSuite"
+              Write-Host "Source directory: $sourceDir"
               docker run --name pw-tests `
                 -e CI=1 `
                 -e USER_EMAIL=$(E2E_VALID_USER) `
