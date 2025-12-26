@@ -50,7 +50,6 @@ stages:
 
   - stage: Test
     displayName: "Run Playwright Tests"
-    dependsOn: DetermineBuildType
     variables:
       TEST_SUITE_RESOLVED: $[ stageDependencies.DetermineBuildType.SetTestSuite.outputs['buildType.TEST_SUITE'] ]
     jobs:
@@ -59,77 +58,97 @@ stages:
         pool:
           name: "Default" # Setting up the default option to use the self-hosted agent. Replace this with `ubuntu-latest` when the hosted parallelism is enabled
         steps:
-          - checkout: self
+          - powershell: |
+              $workDir = "$(Build.SourcesDirectory)"
+              if (Test-Path "$workDir\test-results") {
+                Write-Host "Cleaning up test-results folder..."
+                Remove-Item -Path "$workDir\test-results" -Recurse -Force -ErrorAction SilentlyContinue
+              }
+              if (Test-Path "$workDir\playwright-report") {
+                Write-Host "Cleaning up playwright-report folder..."
+                Remove-Item -Path "$workDir\playwright-report" -Recurse -Force -ErrorAction SilentlyContinue
+              }
+            displayName: "Clean Previous Test Artifacts"
+            condition: always()
+
+          - checkout: self 
             displayName: "Checkout Repository"
+            clean: false #Don't let git clean, we handle it ourselves
+          
+          - task: NodeTool@0
+            displayName: "Install Noed.js"
+            inputs:
+              versionSpec: "18.x"
 
           - powershell: |
               Write-Host "Test suite to run: $(TEST_SUITE_RESOLVED)"
             displayName: "Display Test Suite"
 
           - powershell: |
-              $testSuite = $env:TEST_SUITE_RESOLVED
-              $sourceDir = $env:BUILD_SOURCESDIRECTORY
-              $image = $env:PW_IMAGE
-              
-              Write-Host "Running tests for: $testSuite"
-              Write-Host "Source directory: $sourceDir"
-              docker run --name pw-tests `
-                -e CI=1 `
-                -e USER_EMAIL=$(E2E_VALID_USER) `
-                -e USER_PASSWORD=$(E2E_VALID_PASS) `
-                -e INVALID_USER_EMAIL=$(E2E_INVALID_USER) `
-                -e INVALID_USER_PASSWORD=$(E2E_VALID_PASS) `
-                -e TOTP_SECRET=$(TOTP_SECRET) `
-                -v "$(Build.SourcesDirectory):/work" `
-                $(PW_IMAGE) `
-                bash -c "set -euxo pipefail && cd /work && npm install && CI=1 npx playwright test $(TEST_SUITE_RESOLVED) --reporter=html"
-              if ($LASTEXITCODE -ne 0) {
-                Write-Host "Tests completed with exit code $LASTEXITCODE"
-              }
-            displayName: "Run Playwright Tests in Docker"
+              npm ci
+            displayName: "Install Dependencies"
 
           - powershell: |
-              docker cp pw-tests:/work/playwright-report $(Build.ArtifactStagingDirectory)/playwright-report
-              if (-not $?) { Write-Host "Failed to copy report" }
-              Get-ChildItem -Path "$(Build.ArtifactStagingDirectory)/playwright-report" -ErrorAction SilentlyContinue
-            displayName: "Copy Test Report"
-            condition: always()
+              npx playwright install --with-deps chromium
+            displayName: "Install Playwright Browsers"
 
+
+
+          - powershell: |
+              $env:CI = "1"
+              $env:USER_EMAIL = $env:E2E_VALID_USER
+              $env:USER_PASSWORD = $env:E2E_VALID_PASS
+              $env:INVALID_USER_EMAIL = $env:E2E_INVALID_USER
+              $env:INVALID_USER_PASSWORD = $env:E2E_VALID_PASS
+              
+              $testSuite = "$(TEST_SUITE_RESOLVED)"
+              Write-Host "Running tests: $testSuite"
+              
+              npx playwright test $testSuite --reporter=html
+            displayName: "Run Playwright Tests"
+            env:
+              E2E_VALID_USER: ${E2E_VALID_USER}
+              E2E_VALID_PASS: ${E2E_VALID_PASS}
+              E2E_INVALID_USER: ${E2E_INVALID_USER}
+              TOTP_SECRET: ${TOTP_SECRET}
           - task: PublishPipelineArtifact@1
             displayName: "Publish Playwright Report"
             condition: always()
             inputs:
-              targetPath: "$(Build.ArtifactStagingDirectory)/playwright-report"
+              targetPath: "playwright-report"
               artifact: "playwright-report"
               publishLocation: "pipeline"
+          
+          - stage: Publish
+            displayName: "Publish Report"
+            dependsOn: Test
+            condition: and(always(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+            jobs:
+              - job: PublishReport
+                displayName: "Publish HTML Report"
+                pool:
+                  name: "Default"
+                steps:
+                  - checkout: none
 
-  - stage: Publish
-    displayName: "Publish Report"
-    dependsOn: Test
-    condition: and(always(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-    jobs:
-      - job: PublishReport
-        displayName: "Publish HTML Report"
-        pool:
-          name: "Default" # Setting up the default option to use the self-hosted agent. Replace this with `ubuntu-latest` when the hosted parallelism is enabled
-        steps:
-          - checkout: none
-
-          - task: DownloadPipelineArtifact@2
-            displayName: "Download Playwright Report"
-            inputs:
-              artifact: "playwright-report"
-              path: "$(Build.ArtifactStagingDirectory)/playwright-report"
-
-          - powershell: |
-              New-Item -ItemType Directory -Force -Path "$(Build.ArtifactStagingDirectory)/public"
-              Copy-Item -Path "$(Build.ArtifactStagingDirectory)/playwright-report/*" -Destination "$(Build.ArtifactStagingDirectory)/public/" -Recurse -ErrorAction SilentlyContinue
-              if (-not $?) { Write-Host "No report found" }
-            displayName: "Copy Report to Public Folder"
-
-          - task: PublishPipelineArtifact@1
-            displayName: "Publish Public Artifact"
-            inputs:
-              targetPath: "$(Build.ArtifactStagingDirectory)/public"
-              artifact: "public"
-              publishLocation: "pipeline"
+                  - task: DownloadPipelineArtifact@2
+                    displayName: "Download Playwright Report"
+                    inputs:
+                      artifact: "playwright-report"
+                      path: "$(Build.ArtifactStagingDirectory)/playwright-report"
+                  
+                  - powershell: |
+                      $artifactDir = $env:BUILD_ARTIFACTSTAGINGDIRECTORY
+                      New-Item -ItemType Directory -Force -Path "$artifactDir/public"
+                      Copy-Item -Path "$artifactDir/playwright-report/*" -Destination "$artifactDir/public/" -Recurse -ErrorAction SilentlyContinue
+                      if (-not $?) { Write-Host "No report found" }
+                    displayName: "Copy Report to Public Folder"
+                    env:
+                      BUILD_ARTIFACTSTAGINGDIRECTORY: $(Build.ArtifactStagingDirectory)
+                  
+                  - task: PublishPipelineArtifact@1
+                    displayName: "Publish Public Artifact"
+                    inputs:
+                      targetPath: "$(Build.ArtifactStagingDirectory)/public"
+                      artifact: "public"
+                      publishLocation: "pipeline"
