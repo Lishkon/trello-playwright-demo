@@ -32,19 +32,19 @@ stages:
           name: "Default" # Setting up the default option to use the self-hosted agent. Replace this with `ubuntu-latest` when the hosted parallelism is enabled
         steps:
           - checkout: none
-          - script: |
-              echo "===================================================================="
-              echo "Build Reason: $(Build.Reason)"
-              if [ "$(Build.Reason)" = "Schedule" ]; then
-                echo "Build Type: NIGHTLY BUILD"
-                echo "Test Suite: Full regression (all tests)"
-                echo "##vso[task.setvariable variable=TEST_SUITE;isOutput=true]tests/"
-              else
-                echo "Build Type: COMMIT-TRIGGERED BUILD"
-                echo "Test Suite: Smoke tests (login.spec.ts)"
-                echo "##vso[task.setvariable variable=TEST_SUITE;isOutput=true]tests/login.spec.ts"
-              fi
-              echo "===================================================================="
+          - powershell: |
+              Write-Host "===================================================================="
+              Write-Host "Build Reason: $(Build.Reason)"
+              if ("$(Build.Reason)" -eq "Schedule") {
+                Write-Host "Build Type: NIGHTLY BUILD"
+                Write-Host "Test Suite: Full regression (all tests)"
+                Write-Host "##vso[task.setvariable variable=TEST_SUITE;isOutput=true]tests/"
+              } else {
+                Write-Host "Build Type: COMMIT-TRIGGERED BUILD"
+                Write-Host "Test Suite: Smoke tests (login.spec.ts)"
+                Write-Host "##vso[task.setvariable variable=TEST_SUITE;isOutput=true]tests/login.spec.ts"
+              }
+              Write-Host "===================================================================="
             displayName: "Determine Test Suite"
             name: buildType
 
@@ -66,28 +66,26 @@ stages:
               echo "Test suite to run: $(TEST_SUITE_RESOLVED)"
             displayName: "Display Test Suite"
 
-          - script: |
-              docker run --name pw-tests \
-                -e CI=1 \
-                -e USER_EMAIL=$(E2E_VALID_USER) \
-                -e USER_PASSWORD=$(E2E_VALID_PASS) \
-                -e INVALID_USER_EMAIL=$(E2E_INVALID_USER) \
-                -e INVALID_USER_PASSWORD=$(E2E_VALID_PASS) \
-                -e TOTP_SECRET=$(TOTP_SECRET) \
-                -v $(Build.SourcesDirectory):/work \
-                $(PW_IMAGE) \
-                bash -c "
-                  set -euxo pipefail
-                  cd /work
-                  npm install
-                  CI=1 npx playwright test $(TEST_SUITE_RESOLVED) --reporter=html
-                " || echo "Tests completed with exit code $?"
+          - powershell: |
+              docker run --name pw-tests `
+                -e CI=1 `
+                -e USER_EMAIL=$(E2E_VALID_USER) `
+                -e USER_PASSWORD=$(E2E_VALID_PASS) `
+                -e INVALID_USER_EMAIL=$(E2E_INVALID_USER) `
+                -e INVALID_USER_PASSWORD=$(E2E_VALID_PASS) `
+                -e TOTP_SECRET=$(TOTP_SECRET) `
+                -v "$(Build.SourcesDirectory):/work" `
+                $(PW_IMAGE) `
+                bash -c "set -euxo pipefail && cd /work && npm install && CI=1 npx playwright test $(TEST_SUITE_RESOLVED) --reporter=html"
+              if ($LASTEXITCODE -ne 0) {
+                Write-Host "Tests completed with exit code $LASTEXITCODE"
+              }
             displayName: "Run Playwright Tests in Docker"
 
-          - script: |
-              docker cp pw-tests:/work/playwright-report $(Build.ArtifactStagingDirectory)/playwright-report || echo "Failed to copy report"
-              ls -la $(Build.ArtifactStagingDirectory)/playwright-report/ || echo "No report directory"
-              docker rm -f pw-tests || true
+          - powershell: |
+              docker cp pw-tests:/work/playwright-report $(Build.ArtifactStagingDirectory)/playwright-report
+              if (-not $?) { Write-Host "Failed to copy report" }
+              Get-ChildItem -Path "$(Build.ArtifactStagingDirectory)/playwright-report" -ErrorAction SilentlyContinue
             displayName: "Copy Test Report"
             condition: always()
 
@@ -117,9 +115,10 @@ stages:
               artifact: "playwright-report"
               path: "$(Build.ArtifactStagingDirectory)/playwright-report"
 
-          - script: |
-              mkdir -p $(Build.ArtifactStagingDirectory)/public
-              cp -r $(Build.ArtifactStagingDirectory)/playwright-report/* $(Build.ArtifactStagingDirectory)/public/ || echo "No report found"
+          - powershell: |
+              New-Item -ItemType Directory -Force -Path "$(Build.ArtifactStagingDirectory)/public"
+              Copy-Item -Path "$(Build.ArtifactStagingDirectory)/playwright-report/*" -Destination "$(Build.ArtifactStagingDirectory)/public/" -Recurse -ErrorAction SilentlyContinue
+              if (-not $?) { Write-Host "No report found" }
             displayName: "Copy Report to Public Folder"
 
           - task: PublishPipelineArtifact@1
