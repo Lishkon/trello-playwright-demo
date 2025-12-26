@@ -57,7 +57,7 @@ stages:
       - job: PlaywrightTests
         displayName: "Playwright Tests"
         pool:
-          vmImage: "ubuntu-latest"
+          vmImage: "Default"
         steps:
           - checkout: self
             displayName: "Checkout Repository"
