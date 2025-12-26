@@ -119,36 +119,36 @@ stages:
               artifact: "playwright-report"
               publishLocation: "pipeline"
           
-          - stage: Publish
-            displayName: "Publish Report"
-            dependsOn: Test
-            condition: and(always(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-            jobs:
-              - job: PublishReport
-                displayName: "Publish HTML Report"
-                pool:
-                  name: "Default"
-                steps:
-                  - checkout: none
+  - stage: Publish
+    displayName: "Publish Report"
+    dependsOn: Test
+    condition: and(always(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - job: PublishReport
+        displayName: "Publish HTML Report"
+        pool:
+          name: "Default"
+        steps:
+          - checkout: none
 
-                  - task: DownloadPipelineArtifact@2
-                    displayName: "Download Playwright Report"
-                    inputs:
-                      artifact: "playwright-report"
-                      path: "$(Build.ArtifactStagingDirectory)/playwright-report"
-                  
-                  - powershell: |
-                      $artifactDir = $env:BUILD_ARTIFACTSTAGINGDIRECTORY
-                      New-Item -ItemType Directory -Force -Path "$artifactDir/public"
-                      Copy-Item -Path "$artifactDir/playwright-report/*" -Destination "$artifactDir/public/" -Recurse -ErrorAction SilentlyContinue
-                      if (-not $?) { Write-Host "No report found" }
-                    displayName: "Copy Report to Public Folder"
-                    env:
-                      BUILD_ARTIFACTSTAGINGDIRECTORY: $(Build.ArtifactStagingDirectory)
-                  
-                  - task: PublishPipelineArtifact@1
-                    displayName: "Publish Public Artifact"
-                    inputs:
-                      targetPath: "$(Build.ArtifactStagingDirectory)/public"
-                      artifact: "public"
-                      publishLocation: "pipeline"
+          - task: DownloadPipelineArtifact@2
+            displayName: "Download Playwright Report"
+            inputs:
+              artifact: "playwright-report"
+              path: "$(Build.ArtifactStagingDirectory)/playwright-report"
+          
+          - powershell: |
+              $artifactDir = $env:BUILD_ARTIFACTSTAGINGDIRECTORY
+              New-Item -ItemType Directory -Force -Path "$artifactDir/public"
+              Copy-Item -Path "$artifactDir/playwright-report/*" -Destination "$artifactDir/public/" -Recurse -ErrorAction SilentlyContinue
+              if (-not $?) { Write-Host "No report found" }
+            displayName: "Copy Report to Public Folder"
+            env:
+              BUILD_ARTIFACTSTAGINGDIRECTORY: $(Build.ArtifactStagingDirectory)
+          
+          - task: PublishPipelineArtifact@1
+            displayName: "Publish Public Artifact"
+            inputs:
+              targetPath: "$(Build.ArtifactStagingDirectory)/public"
+              artifact: "public"
+              publishLocation: "pipeline"
