@@ -29,7 +29,7 @@ stages:
       - job: SetTestSuite
         displayName: "Set Test Suite Based on Build Reason"
         pool:
-          vmImage: "Default" # Setting up the default option to use the self-hosted agent. Replace this with `ubuntu-latest` when the hosted parallelism is enabled
+          name: "Default" # Setting up the default option to use the self-hosted agent. Replace this with `ubuntu-latest` when the hosted parallelism is enabled
         steps:
           - checkout: none
           - script: |
@@ -57,7 +57,7 @@ stages:
       - job: PlaywrightTests
         displayName: "Playwright Tests"
         pool:
-          vmImage: "Default" # Setting up the default option to use the self-hosted agent. Replace this with `ubuntu-latest` when the hosted parallelism is enabled
+          name: "Default" # Setting up the default option to use the self-hosted agent. Replace this with `ubuntu-latest` when the hosted parallelism is enabled
         steps:
           - checkout: self
             displayName: "Checkout Repository"
@@ -107,7 +107,7 @@ stages:
       - job: PublishReport
         displayName: "Publish HTML Report"
         pool:
-          vmImage: "Default" # Setting up the default option to use the self-hosted agent. Replace this with `ubuntu-latest` when the hosted parallelism is enabled
+          name: "Default" # Setting up the default option to use the self-hosted agent. Replace this with `ubuntu-latest` when the hosted parallelism is enabled
         steps:
           - checkout: none
 
