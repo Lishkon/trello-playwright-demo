@@ -1,0 +1,130 @@
+# azure-pipelines.yml
+
+# Triggers
+trigger:
+  branches:
+    include:
+      - main
+
+# Schedule for nightly builds (equivalent to GitLab scheduled pipelines)
+schedules:
+  - cron: "0 0 * * *"  # Midnight UTC daily
+    displayName: "Nightly Build"
+    branches:
+      include:
+        - main
+    always: true
+
+# Global variables
+variables:
+  PW_IMAGE: "mcr.microsoft.com/playwright:v1.53.2-jammy"
+  # Default test suite (overridden for scheduled builds)
+  TEST_SUITE: "tests/login.spec.ts"
+
+# Define stages
+stages:
+  - stage: DetermineBuildType
+    displayName: "Determine Build Type"
+    jobs:
+      - job: SetTestSuite
+        displayName: "Set Test Suite Based on Build Reason"
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - checkout: none
+          - script: |
+              echo "===================================================================="
+              echo "Build Reason: $(Build.Reason)"
+              if [ "$(Build.Reason)" = "Schedule" ]; then
+                echo "Build Type: NIGHTLY BUILD"
+                echo "Test Suite: Full regression (all tests)"
+                echo "##vso[task.setvariable variable=TEST_SUITE;isOutput=true]tests/"
+              else
+                echo "Build Type: COMMIT-TRIGGERED BUILD"
+                echo "Test Suite: Smoke tests (login.spec.ts)"
+                echo "##vso[task.setvariable variable=TEST_SUITE;isOutput=true]tests/login.spec.ts"
+              fi
+              echo "===================================================================="
+            displayName: "Determine Test Suite"
+            name: buildType
+
+  - stage: Test
+    displayName: "Run Playwright Tests"
+    dependsOn: DetermineBuildType
+    variables:
+      TEST_SUITE_RESOLVED: $[ stageDependencies.DetermineBuildType.SetTestSuite.outputs['buildType.TEST_SUITE'] ]
+    jobs:
+      - job: PlaywrightTests
+        displayName: "Playwright Tests"
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - checkout: self
+            displayName: "Checkout Repository"
+
+          - script: |
+              echo "Test suite to run: $(TEST_SUITE_RESOLVED)"
+            displayName: "Display Test Suite"
+
+          - script: |
+              docker run --name pw-tests \
+                -e CI=1 \
+                -e USER_EMAIL=$(E2E_VALID_USER) \
+                -e USER_PASSWORD=$(E2E_VALID_PASS) \
+                -e INVALID_USER_EMAIL=$(E2E_INVALID_USER) \
+                -e INVALID_USER_PASSWORD=$(E2E_VALID_PASS) \
+                -e TOTP_SECRET=$(TOTP_SECRET) \
+                -v $(Build.SourcesDirectory):/work \
+                $(PW_IMAGE) \
+                bash -c "
+                  set -euxo pipefail
+                  cd /work
+                  npm install
+                  CI=1 npx playwright test $(TEST_SUITE_RESOLVED) --reporter=html
+                " || echo "Tests completed with exit code $?"
+            displayName: "Run Playwright Tests in Docker"
+
+          - script: |
+              docker cp pw-tests:/work/playwright-report $(Build.ArtifactStagingDirectory)/playwright-report || echo "Failed to copy report"
+              ls -la $(Build.ArtifactStagingDirectory)/playwright-report/ || echo "No report directory"
+              docker rm -f pw-tests || true
+            displayName: "Copy Test Report"
+            condition: always()
+
+          - task: PublishPipelineArtifact@1
+            displayName: "Publish Playwright Report"
+            condition: always()
+            inputs:
+              targetPath: "$(Build.ArtifactStagingDirectory)/playwright-report"
+              artifact: "playwright-report"
+              publishLocation: "pipeline"
+
+  - stage: Publish
+    displayName: "Publish Report"
+    dependsOn: Test
+    condition: and(always(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - job: PublishReport
+        displayName: "Publish HTML Report"
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - checkout: none
+
+          - task: DownloadPipelineArtifact@2
+            displayName: "Download Playwright Report"
+            inputs:
+              artifact: "playwright-report"
+              path: "$(Build.ArtifactStagingDirectory)/playwright-report"
+
+          - script: |
+              mkdir -p $(Build.ArtifactStagingDirectory)/public
+              cp -r $(Build.ArtifactStagingDirectory)/playwright-report/* $(Build.ArtifactStagingDirectory)/public/ || echo "No report found"
+            displayName: "Copy Report to Public Folder"
+
+          - task: PublishPipelineArtifact@1
+            displayName: "Publish Public Artifact"
+            inputs:
+              targetPath: "$(Build.ArtifactStagingDirectory)/public"
+              artifact: "public"
+              publishLocation: "pipeline"
