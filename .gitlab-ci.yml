@@ -57,7 +57,7 @@ playwright-tests:
       - playwright-report/
       - test-results/
     reports:
-      junit: test-results/junit.xml
+      junit: test-results/results.xml
     expire_in: 30 days
   allow_failure: false
 
