@@ -12,7 +12,7 @@ export default defineConfig({
   workers: process.env.CI ? 2 : undefined,
   
   reporter: process.env.CI
-    ? [['dot'], ['html']]
+    ? [['dot'], ['html'], ['junit', {outputFile: 'tests-results/junit'}]]
     : [['list'], ['html']],
 
   use: {
