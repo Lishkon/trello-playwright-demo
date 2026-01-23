@@ -54,15 +54,14 @@ playwright-tests:
   artifacts:
     when: always
     paths:
-      - playwright-report/
-      - test-results/
+      - reports/
     reports:
-      junit: test-results/results.xml
+      junit: reports/junit/results.xml
     expire_in: 30 days
   allow_failure: false
 
 # Publish the playwright reports
-publish-report:
+pages:
   stage: publish
   image: alpine:latest
   dependencies:
