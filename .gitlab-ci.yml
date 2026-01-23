@@ -44,8 +44,8 @@ playwright-tests:
     key:
       files:
         - package-lock.json
-      paths:
-        - node_modules/
+    paths:
+      - node_modules/
   before_script:
     - echo "Test suite to run $TEST_SUITE"
     - npm ci
