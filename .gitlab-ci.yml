@@ -63,7 +63,7 @@ playwright-tests:
           CI=1 npx playwright test ${TEST_SUITE} --reporter=html
         " || echo "Tests completed with exit code $?"
   after_script:
-    - docker cp pw-tests:/work/playwright-report ./playwright-report || Echo "Failed to copy report"
+    - docker cp pw-tests:/work/playwright-report ./playwright-report || echo "Failed to copy report"
     - ls -la playwright-report/ || echo "No report directory"
     - docker rm -f pw-tests || true
   artifacts:
