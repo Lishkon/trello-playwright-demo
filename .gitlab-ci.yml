@@ -4,11 +4,6 @@
 variables:
   PW_IMAGE: "mcr.microsoft.com/playwright:v1.53.2-jammy"
   TEST_SUITE: "tests/login.spec.ts"
-  USER_EMAIL: ${E2E_VALID_USER}
-  USER_PASSWORD: ${E2E_VALID_PASS}
-  INVALID_USER_EMAIL: ${E2E_INVALID_USER}
-  INVALID_USER_PASSWORD: ${E2E_INVALID_PASS}
-  TOTP_SECRET: ${TOTP_SECRET}
 
 # Define stages
 stages:
@@ -41,6 +36,12 @@ determine-build-type:
 playwright-tests:
   stage: test
   image: mcr.microsoft.com/playwright:v1.53.2-jammy
+  variables:
+    USER_EMAIL: ${E2E_VALID_USER}
+    USER_PASSWORD: ${E2E_VALID_PASS}
+    INVALID_USER_EMAIL: ${E2E_INVALID_USER}
+    INVALID_USER_PASSWORD: ${E2E_INVALID_PASS}
+    TOTP_SECRET: ${TOTP_SECRET}
   dependencies:
     - determine-build-type
   cache:
