@@ -3,9 +3,12 @@
 # Global variables
 variables:
   PW_IMAGE: "mcr.microsoft.com/playwright:v1.53.2-jammy"
-  # Determine test suite based on pipeline source
-  # Using login tests currently as an example to save timegi
   TEST_SUITE: "tests/login.spec.ts"
+  USER_EMAIL: ${E2E_VALID_USER}
+  USER_PASSWORD: ${E2E_VALID_PASS}
+  INVALID_USER_EMAIL: ${E2E_INVALID_USER}
+  INVALID_USER_PASSWORD: ${E2E_INVALID_PASS}
+  TOTP_SECRET: ${TOTP_SECRET}
 
 # Define stages
 stages:
@@ -40,12 +43,6 @@ playwright-tests:
   image: mcr.microsoft.com/playwright:v1.53.2-jammy
   dependencies:
     - determine-build-type
-  variables:
-    USER_EMAIL: ${E2E_VALID_USER}
-    USER_PASSWORD: ${E2E_VALID_PASS}
-    INVALID_USER_EMAIL: ${E2E_INVALID_USER}
-    INVALID_USER_PASSWORD: ${E2E_INVALID_PASS}
-    TOTP_SECRET: ${TOTP_SECRET}
   cache:
     key:
       files:
