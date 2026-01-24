@@ -74,7 +74,7 @@ pages:
     - playwright-tests
   script:
     - mkdir -p public
-    - cp -r playwright-report/* public/ || echo "No report found"
+    - cp -r reports/playwright/* public/ || echo "No report found"
   artifacts:
     paths:
       - public
