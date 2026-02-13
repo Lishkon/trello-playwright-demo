@@ -67,7 +67,7 @@ playwright-tests:
 # Publish the playwright reports
 pages:
   stage: publish
-  image: alpine:27.5.1
+  image: alpine:3.21
   dependencies:
     - playwright-tests
   script:
