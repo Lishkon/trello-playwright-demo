@@ -14,7 +14,7 @@ stages:
 # Determine what type of build this is
 determine-build-type:
   stage: determine-build-type
-  image: alpine:latest
+  image: alpine:3.21
   script:
     - |
       echo "===================================================================="
@@ -67,7 +67,7 @@ playwright-tests:
 # Publish the playwright reports
 pages:
   stage: publish
-  image: alpine:latest
+  image: alpine:27.5.1
   dependencies:
     - playwright-tests
   script:
