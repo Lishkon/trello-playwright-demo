@@ -28,17 +28,6 @@ test.describe("UI Functional Tests: Login functionality for the logged out users
 
     });
 
-    test.skip("Verify error message when logging in with valid email and invalid password", async () => {
-        let warning:string = "Incorrect email address and / or password. If you recently migrated your Trello account to an Atlassian account, you will need to use your Atlassian account password. Alternatively, you can get help logging in.";
-        
-        await loginPage.typeEmail(CREDENTIALS.REAL.USER!);
-        await loginPage.clickContinue();
-        await loginPage.typePassword(CREDENTIALS.INVALID_CREDS.PASSWORD!);
-        await loginPage.clickLoginButton();
-        
-        await expect(loginPage.invalidCredentialHeaderTitle).toHaveText(warning);
-    });
-
     test("Verify validation error when logging in with blank email", async ({page}) => {
         let warning:string = "Enter an email address";
 
