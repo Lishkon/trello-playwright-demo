@@ -57,16 +57,5 @@ test.describe("UI Functional Tests: Login functionality for the logged out users
         await expect(loginPage.missingPasswordValidationMessage).toHaveText(warning);
     });
 
-    test.skip("Verify that the user is informed about the authentication code sent to his email", async ({ page }) => {
-        let warning:string = "Enable two-step verification";
-
-        await loginPage.typeEmail(CREDENTIALS.REAL.USER!);
-        await loginPage.clickContinue();
-        await loginPage.typePassword(CREDENTIALS.REAL.PASSWORD!);
-        await loginPage.clickLoginButton();
-
-        await expect(loginPage.atlassianHeaderTitle).toHaveText(warning);
-    });
-
 
 })
