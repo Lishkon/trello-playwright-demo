@@ -3,8 +3,6 @@
 # Global variables
 variables:
   PW_IMAGE: "mcr.microsoft.com/playwright:v1.53.2-jammy"
-  # Determine test suite based on pipeline source
-  # Using login tests currently as an example to save timegi
   TEST_SUITE: "tests/login.spec.ts"
 
 # Define stages
@@ -16,7 +14,7 @@ stages:
 # Determine what type of build this is
 determine-build-type:
   stage: determine-build-type
-  image: alpine:latest
+  image: alpine:3.21
   script:
     - |
       echo "===================================================================="
@@ -37,51 +35,44 @@ determine-build-type:
 # Run Playwright tests
 playwright-tests:
   stage: test
-  image: docker:latest
-  services:
-    - docker:dind 
+  image: mcr.microsoft.com/playwright:v1.53.2-jammy
+  variables:
+    USER_EMAIL: ${E2E_VALID_USER}
+    USER_PASSWORD: ${E2E_VALID_PASS}
+    INVALID_USER_EMAIL: ${E2E_INVALID_USER}
+    INVALID_USER_PASSWORD: ${E2E_INVALID_PASS}
+    TOTP_SECRET: ${TOTP_SECRET}
   dependencies:
     - determine-build-type
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules/
   before_script:
     - echo "Test suite to run $TEST_SUITE"
+    - npm ci
   script:
-    - |
-      docker run --name pw-tests \
-        -e CI=1 \
-        -e USER_EMAIL=${E2E_VALID_USER} \
-        -e USER_PASSWORD=${E2E_VALID_PASS} \
-        -e INVALID_USER_EMAIL=${E2E_INVALID_USER} \
-        -e INVALID_USER_PASSWORD=${E2E_VALID_PASS} \
-        -e TOTP_SECRET=${TOTP_SECRET} \
-        ${PW_IMAGE} \
-        bash -c "
-          set -euxo pipefail
-          apt-get update && apt-get install -y git
-          git clone --branch main --single-branch ${CI_REPOSITORY_URL} /work
-          cd /work
-          npm install
-          CI=1 npx playwright test ${TEST_SUITE} --reporter=html
-        " || echo "Tests completed with exit code $?"
-  after_script:
-    - docker cp pw-tests:/work/playwright-report ./playwright-report || Echo "Failed to copy report"
-    - ls -la playwright-report/ || echo "No report directory"
-    - docker rm -f pw-tests || true
+    - npx playwright test $TEST_SUITE
   artifacts:
     when: always
     paths:
-      - playwright-report/
+      - reports/
+    reports:
+      junit: reports/junit/results.xml
     expire_in: 30 days
   allow_failure: false
 
 # Publish the playwright reports
-publish-report:
+pages:
   stage: publish
-  image: alpine:latest
+  image: alpine:3.21
   dependencies:
     - playwright-tests
   script:
     - mkdir -p public
-    - cp -r playwright-report/* public/ || echo "No report found"
+    - cp -r reports/playwright/* public/ || echo "No report found"
   artifacts:
     paths:
       - public

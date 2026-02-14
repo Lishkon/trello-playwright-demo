@@ -12,8 +12,15 @@ export default defineConfig({
   workers: process.env.CI ? 2 : undefined,
   
   reporter: process.env.CI
-    ? [['dot'], ['html']]
-    : [['list'], ['html']],
+    ? [
+        ['dot'], 
+        ['html', {outputFolder: 'reports/playwright'}], 
+        ['junit', {outputFile: 'reports/junit/results.xml'}]
+      ]
+    : [
+        ['list'], 
+        ['html', {outputFolder: 'reports/playwright'}]
+      ],
 
   use: {
     trace: 'on-first-retry',
