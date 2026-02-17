@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "board": "playwright test tests/Board.spec.ts && npx playwright show-report"
+    "board": "playwright test tests/boards.spec.ts && npx playwright show-report"
   },
   "keywords": [],
   "author": "",
