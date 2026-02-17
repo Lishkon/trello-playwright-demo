@@ -42,6 +42,8 @@ playwright-tests:
     INVALID_USER_EMAIL: ${E2E_INVALID_USER}
     INVALID_USER_PASSWORD: ${E2E_INVALID_PASS}
     TOTP_SECRET: ${TOTP_SECRET}
+    TRELLO_API_KEY: ${TRELLO_API_KEY}
+    TRELLO_API_TOKEN: ${TRELLO_API_TOKEN}
   dependencies:
     - determine-build-type
   cache:
