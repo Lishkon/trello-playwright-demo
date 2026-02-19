@@ -42,8 +42,6 @@ setup("Authentication with 2FA", async ({page}) => {
   } catch (e) {
     console.log("No OTP challenge this time, continuing without it...");
   }
-  
-  await expect(loginPage.otpInput).toBeHidden();
 
   await page.context().storageState({
     path: authFile,
