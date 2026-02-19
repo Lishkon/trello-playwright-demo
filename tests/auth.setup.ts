@@ -31,7 +31,7 @@ setup("Authentication with 2FA", async ({page}) => {
   await loginPage.typePassword(CREDENTIALS.REAL.PASSWORD!);
   await loginPage.clickLoginButton();
   
-  const secret = process.env.TOTP_SECRET!;
+  const secret = process.env.SECRET!;
   try {
     await expect(loginPage.otpInput).toBeVisible({ timeout: 5000 });  
     // Adding the otplib window option to bypass the time-related issue in CI
