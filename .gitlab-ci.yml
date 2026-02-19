@@ -3,34 +3,12 @@
 # Global variables
 variables:
   PW_IMAGE: "mcr.microsoft.com/playwright:v1.53.2-jammy"
-  TEST_SUITE: "tests/login.spec.ts"
+  TEST_SUITE: "tests/"
 
 # Define stages
 stages:
-  - determine-build-type
   - test
   - publish
-
-# Determine what type of build this is
-determine-build-type:
-  stage: determine-build-type
-  image: alpine:3.21
-  script:
-    - |
-      echo "===================================================================="
-      if [ "$CI_PIPELINE_SOURCE" = "schedule" ]; then
-        echo "Build Type: NIGHTLY BUILD"
-        echo "Test Suite: Full regression (all tests)"
-        echo "TEST_SUITE=tests/" >> build.env
-      else
-        echo "Build Type: COMMIT-TRIGGERED BUILD"
-        echo "Test Suite: Smoke tests (login.spec.ts)"
-        echo "TEST_SUITE=tests/login.spec.ts" >> build.env
-      fi
-      echo "===================================================================="
-  artifacts:
-    reports:
-      dotenv: build.env
 
 # Run Playwright tests
 playwright-tests:
