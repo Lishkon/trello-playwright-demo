@@ -35,14 +35,23 @@ test.describe("Sample test for Boards page", () => {
     test.afterEach(async ({request }) => {
         if (shortBoardId) {
             await request.delete(
-                `https://api.trello.com/1/boards/${shortBoardId}?key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_API_TOKEN}`
+                `https://api.trello.com/1/boards/${shortBoardId}?key=${process.env.TRELLO_KEY}&token=${process.env.TRELLO_TOKEN}`
             );
         }
     })
 
-    test("Creating a board", async ({page}) => {
+    test("Creating a board with the Workspace visibility", async ({page}) => {
         let boardName = faker.company.buzzAdjective() + " board";
-        await boardsPage.createBoard(boardName);
+        await boardsPage.createBoard(boardName, "Workspace");
+        await expect(boardsPage.currentBoardSelector).toContainText(boardName);
+        // Storing the boardId locally to be able to clean up the board after the test
+        shortBoardId = page.url().split('/')[4]; 
+        console.log(`The newly created board id: ${shortBoardId}`);
+    })
+
+    test("Creating a private board", async ({page}) => {
+        let boardName = faker.company.buzzAdjective() + " board";
+        await boardsPage.createBoard(boardName, "Private");
         await expect(boardsPage.currentBoardSelector).toContainText(boardName);
         // Storing the boardId locally to be able to clean up the board after the test
         shortBoardId = page.url().split('/')[4]; 
