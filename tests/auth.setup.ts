@@ -31,9 +31,11 @@ setup("Authentication with 2FA", async ({page}) => {
   await loginPage.typePassword(CREDENTIALS.REAL.PASSWORD!);
   await loginPage.clickLoginButton();
   
-  const secret = process.env.TOTP_SECRET!;
+  const secret = process.env.SECRET!;
   try {
-    await expect(loginPage.otpInput).toBeVisible({ timeout: 5000 });    
+    await expect(loginPage.otpInput).toBeVisible({ timeout: 5000 });  
+    // Adding the otplib window option to bypass the time-related issue in CI
+    authenticator.options = { window: 2 };  
     const otp = authenticator.generate(secret);
     console.log("Generated OTP:", otp);    
     await loginPage.otpInput.click();
@@ -43,7 +45,7 @@ setup("Authentication with 2FA", async ({page}) => {
     console.log("No OTP challenge this time, continuing without it...");
   }
   
-  await expect(loginPage.otpInput).toBeHidden();
+  await expect(page).toHaveURL(/.*trello\.com\/.*boards.*/);
 
   await page.context().storageState({
     path: authFile,
