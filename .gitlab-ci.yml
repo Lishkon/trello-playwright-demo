@@ -3,34 +3,12 @@
 # Global variables
 variables:
   PW_IMAGE: "mcr.microsoft.com/playwright:v1.53.2-jammy"
-  TEST_SUITE: "tests/login.spec.ts"
+  TEST_SUITE: "tests/"
 
 # Define stages
 stages:
-  - determine-build-type
   - test
   - publish
-
-# Determine what type of build this is
-determine-build-type:
-  stage: determine-build-type
-  image: alpine:3.21
-  script:
-    - |
-      echo "===================================================================="
-      if [ "$CI_PIPELINE_SOURCE" = "schedule" ]; then
-        echo "Build Type: NIGHTLY BUILD"
-        echo "Test Suite: Full regression (all tests)"
-        echo "TEST_SUITE=tests/" >> build.env
-      else
-        echo "Build Type: COMMIT-TRIGGERED BUILD"
-        echo "Test Suite: Smoke tests (login.spec.ts)"
-        echo "TEST_SUITE=tests/login.spec.ts" >> build.env
-      fi
-      echo "===================================================================="
-  artifacts:
-    reports:
-      dotenv: build.env
 
 # Run Playwright tests
 playwright-tests:
@@ -41,11 +19,9 @@ playwright-tests:
     USER_PASSWORD: ${E2E_VALID_PASS}
     INVALID_USER_EMAIL: ${E2E_INVALID_USER}
     INVALID_USER_PASSWORD: ${E2E_INVALID_PASS}
-    TOTP_SECRET: ${TOTP_SECRET}
+    SECRET: ${TOTP_SECRET}
     TRELLO_API_KEY: ${TRELLO_API_KEY}
     TRELLO_API_TOKEN: ${TRELLO_API_TOKEN}
-  dependencies:
-    - determine-build-type
   cache:
     key:
       files:
@@ -61,6 +37,7 @@ playwright-tests:
     when: always
     paths:
       - reports/
+      - test-results/
     reports:
       junit: reports/junit/results.xml
     expire_in: 30 days
@@ -79,14 +56,11 @@ pages:
     paths:
       - public
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"  # Only for main branch
+    - if: $CI_COMMIT_BRANCH == "main"
   when: always
 
-
 workflow:
-    rules:
+  rules:
     - if: $CI_PIPELINE_SOURCE == "push"
     - if: $CI_PIPELINE_SOURCE == "schedule"
     - if: $CI_PIPELINE_SOURCE == "web"
-
-    
