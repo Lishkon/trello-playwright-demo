@@ -37,6 +37,7 @@ playwright-tests:
     when: always
     paths:
       - reports/
+      - test-results/
     reports:
       junit: reports/junit/results.xml
     expire_in: 30 days
@@ -55,14 +56,11 @@ pages:
     paths:
       - public
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"  # Only for main branch
+    - if: $CI_COMMIT_BRANCH == "main"
   when: always
 
-
 workflow:
-    rules:
+  rules:
     - if: $CI_PIPELINE_SOURCE == "push"
     - if: $CI_PIPELINE_SOURCE == "schedule"
     - if: $CI_PIPELINE_SOURCE == "web"
-
-    
