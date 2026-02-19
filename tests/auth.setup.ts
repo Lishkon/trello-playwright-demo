@@ -42,6 +42,8 @@ setup("Authentication with 2FA", async ({page}) => {
   } catch (e) {
     console.log("No OTP challenge this time, continuing without it...");
   }
+  
+  await expect(page).toHaveURL(/.*trello\.com\/w\/.*\/home/);
 
   await page.context().storageState({
     path: authFile,
