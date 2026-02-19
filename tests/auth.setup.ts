@@ -33,7 +33,10 @@ setup("Authentication with 2FA", async ({page}) => {
   
   const secret = process.env.TOTP_SECRET!;
   try {
-    await expect(loginPage.otpInput).toBeVisible({ timeout: 5000 });    
+    await expect(loginPage.otpInput).toBeVisible({ timeout: 5000 });  
+    // Adding the otplib window option to bypass the time-related issue in CI
+    authenticator.options = { window: 1 };  
+    
     const otp = authenticator.generate(secret);
     console.log("Generated OTP:", otp);    
     await loginPage.otpInput.click();
