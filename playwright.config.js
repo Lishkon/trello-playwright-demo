@@ -24,6 +24,7 @@ export default defineConfig({
 
   use: {
     trace: 'on-first-retry',
+    screenshot: 'only-on-failure'
   },
   expect: {
     timeout: 10_000,
