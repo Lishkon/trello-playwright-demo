@@ -40,7 +40,7 @@ test.describe("Sample test for Boards page", () => {
         }
     })
 
-    test("Creating a board with the Workspace visibility", async ({page}) => {
+    test("As a logged in user, I want to create a board with the Workspace visibility", async ({page}) => {
         let boardName = faker.company.buzzAdjective() + " board";
         await boardsPage.createBoard(boardName, "Workspace");
         await expect(boardsPage.currentBoardSelector).toContainText(boardName);
@@ -49,9 +49,18 @@ test.describe("Sample test for Boards page", () => {
         console.log(`The newly created board id: ${shortBoardId}`);
     })
 
-    test("Creating a private board", async ({page}) => {
+    test("As a logged in user, I want to create a private board", async ({page}) => {
         let boardName = faker.company.buzzAdjective() + " board";
         await boardsPage.createBoard(boardName, "Private");
+        await expect(boardsPage.currentBoardSelector).toContainText(boardName);
+        // Storing the boardId locally to be able to clean up the board after the test
+        shortBoardId = page.url().split('/')[4]; 
+        console.log(`The newly created board id: ${shortBoardId}`);
+    })
+
+    test("As a logged in user, I want to create a public board", async ({page}) => {
+        let boardName = faker.company.buzzAdjective() + " board";
+        await boardsPage.createBoard(boardName, "Public");
         await expect(boardsPage.currentBoardSelector).toContainText(boardName);
         // Storing the boardId locally to be able to clean up the board after the test
         shortBoardId = page.url().split('/')[4]; 
