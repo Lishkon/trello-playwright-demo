@@ -6,6 +6,9 @@ export const BoardsTabMenuSelectors = {
 
 export const CreateBoardTileSelectors = {
     "boardTitle": "input[data-testid='create-board-title-input']",
+    "visibilityOption": "div[data-testid='create-board-select-visibility']",
+    "visibilityListox": "[data-testid='create-board-select-visibility-select--listbox']",
+    "confirmPublicButton": "button:has-text('Yes, make board public')",
     "createButton": "button[data-testid='create-board-submit-button']"
 }
 
