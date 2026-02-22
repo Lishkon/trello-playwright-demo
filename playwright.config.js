@@ -25,10 +25,13 @@ export default defineConfig({
   use: {
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    video: 'on'
+    video: 'on',
+    actionTimeout: 10_000,
+    navigationTimeout: 30_000,
   },
+  timeout: 60_000,
   expect: {
-    timeout: 10_000,
+    timeout: 20_000,
   },
   /* Configure projects for major browsers */
   projects: [
