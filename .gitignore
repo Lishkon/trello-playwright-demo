@@ -5,6 +5,9 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 
+# Artifacts
+test-results/
+
 # Playwright authenticated states
 auth/*.json
 
