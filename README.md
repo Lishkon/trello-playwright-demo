@@ -23,6 +23,7 @@ This project is a real-world demonstration of building a modern UI test automati
   - [Maintenance Commands](#maintenance-commands)
   - [🧾 Example Output](#-example-output)
   - [💡 Next Steps](#-next-steps)
+  - [Contributing](#contributing)
 
 
 ---
@@ -323,3 +324,7 @@ In Jenkins:
 - Add Slack/email notifications
 - Extend pipeline with Docker-based test runners
 - Deploy Jenkins to a cloud VM (AWS, Azure, or DigitalOcean)
+
+## Contributing
+
+See [COMMITS.md](./COMMITS.md) for commit message conventions used in this project.
