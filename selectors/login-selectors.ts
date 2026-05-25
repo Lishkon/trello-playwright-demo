@@ -26,6 +26,6 @@ export const AttlassianScreenSelectors = {
     "MissingEmailValidationMessage": "div[data-testid*='-invalid-error-message-field--idf-testid']",
     "MissingPasswordValidationMessage": "span[data-testid='password-error-idf-testid']",
     "RequireAdditionalVerificationMessage": "#email-sent-page",
-    "OtpCodeInput": "input[data-testid='otp-input-index-0']",
-    "VerifyButton": "#otp-submit"
+    "OtpCodeInput": "#two-step-verification-otp-code-input",
+    "VerifyButton": "#two-step-verification-submit button"
 }

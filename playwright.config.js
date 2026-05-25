@@ -24,9 +24,14 @@ export default defineConfig({
 
   use: {
     trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    video: 'on',
+    actionTimeout: 10_000,
+    navigationTimeout: 30_000,
   },
+  timeout: 60_000,
   expect: {
-    timeout: 10_000,
+    timeout: 20_000,
   },
   /* Configure projects for major browsers */
   projects: [
@@ -38,18 +43,42 @@ export default defineConfig({
       },
     },
     {
+      name: 'chromium-no-auth',
+      testMatch: /login\.spec\.ts/i,
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: {cookies:[], origins:[]},
+      }
+    },
+    {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      dependencies:["setup"],
+      testIgnore: /login\.spec\.ts/i,
+      use: { 
+        ...devices['Desktop Chrome'],
+        storageState: "auth/atlassian-storage.json"   
+      },
+      
     },
 
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      dependencies:["setup"],
+      testIgnore: /login\.spec\.ts/i,
+      use: { 
+        ...devices['Desktop Firefox'],
+        storageState: "auth/atlassian-storage.json" 
+      },
     },
 
     {
       name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      dependencies:["setup"],
+      testIgnore: /login\.spec\.ts/i,
+      use: { 
+        ...devices['Desktop Safari'] ,
+        storageState: "auth/atlassian-storage.json"
+      },
     },
   ],
 });
