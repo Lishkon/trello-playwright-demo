@@ -1,9 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { CREDENTIALS, URL } from "../data/constants";
 import { LoginPage } from '../pages/Login-Page';
+import { Boards } from '../pages/Boards-Page';
 
 
 let loginPage: LoginPage;
+let boards: Boards;
 
 test.describe("UI Functional Tests: Login functionality for the logged out users", () => {
     // Force clean state for all tests in this describe
@@ -13,7 +15,7 @@ test.describe("UI Functional Tests: Login functionality for the logged out users
 
     test.beforeEach(async ({ page }) => {
         loginPage = new LoginPage(page);
-
+        boards = new Boards(page);
         await page.goto(URL.E2E.PROD);
         await loginPage.clickLoginLink();
     })
@@ -29,9 +31,7 @@ test.describe("UI Functional Tests: Login functionality for the logged out users
 
     test("Verify validation error when logging in with blank email", async () => {
         const warning:string = "Enter an email address";
-
         await loginPage.clickContinue();
-
         await expect(loginPage.missingEmailValidationMessage).toHaveText(warning);
     });
 
@@ -43,6 +43,15 @@ test.describe("UI Functional Tests: Login functionality for the logged out users
         await loginPage.clickLoginButton();
 
         await expect(loginPage.missingPasswordValidationMessage).toHaveText(warning);
+    });
+
+    test("User should be able to successfully log in", async() => {
+        await loginPage.loginWithTwoFactor(
+            CREDENTIALS.REAL.USER!,
+            CREDENTIALS.REAL.PASSWORD!,
+            process.env.TOTP_SECRET!
+        );
+        await expect(boards.createBoardButton.first()).toBeVisible();
     });
 
 })

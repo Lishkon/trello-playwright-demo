@@ -1,4 +1,5 @@
-import { Locator, Page } from "@playwright/test";
+import { authenticator } from "otplib";
+import { Locator, Page, expect } from "@playwright/test";
 
 export class LoginPage {
     readonly page: Page;
@@ -33,6 +34,19 @@ export class LoginPage {
         await this.continueButton.click();
         await this.passwordInput.fill(password);
         await this.loginButton.click();
+    }
+
+    async loginWithTwoFactor(username: string, password: string, secret: string) {
+        await this.login(username, password);
+
+        try {
+            await expect(this.otpInput).toBeVisible({timeout: 5000});
+            authenticator.options = { window: 2 };
+            const otp = authenticator.generate(secret);
+            await this.completeOtp(otp);
+        } catch (e) {
+            console.log("No OTP challenge detected, continuing working without it. Reason: ", (e as Error).message);
+        }
     }
 
     async typeEmail(email: string) {
