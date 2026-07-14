@@ -51,7 +51,7 @@ test.describe("UI Functional Tests: Login functionality for the logged out users
             CREDENTIALS.REAL.PASSWORD!,
             process.env.TOTP_SECRET!
         );
-        await expect(boards.createBoardButton.first()).toBeVisible();
+        await expect(boards.createMenuButton).toBeVisible();
     });
 
 })
