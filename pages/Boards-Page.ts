@@ -16,7 +16,7 @@ export class Boards {
     constructor(page: Page) {
         this.page = page;
         this.createMenuButton = page.getByRole('button', {name: 'Create board or Workspace', exact: true });
-        this.createBoardButton = page.getByTestId('header-create-board-button');
+        this.createBoardButton = page.getByTestId('create-board-button');
         this.currentBoardSelector = page.getByTestId('board-name-container');
         this.startWithTemplateButton = page.getByRole('button', {name: 'Start with a template'}).first();
         this.boardTitle = page.getByTestId('create-board-title-input');
