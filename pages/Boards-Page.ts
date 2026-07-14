@@ -15,23 +15,27 @@ export class Boards {
 
     constructor(page: Page) {
         this.page = page;
-        this.createMenuButton = page.locator(BoardsTabMenuSelectors.createMenuButton);
-        this.createBoardButton = page.locator(BoardsTabMenuSelectors.createBoardButton);
-        this.currentBoardSelector = page.locator(CurrentBoardSelectors.currentBoardTitle);
-        this.startWithTemplateButton = page.locator(BoardsTabMenuSelectors.startWithTemplateButton);
-        this.boardTitle = page.locator(CreateBoardTileSelectors.boardTitle);
-        this.visibilityDropdown = page.locator(CreateBoardTileSelectors.visibilityOption);
-        this.visibilityListbox = page.locator(CreateBoardTileSelectors.visibilityListox);
-        this.confirmPublicButton = page.locator(CreateBoardTileSelectors.confirmPublicButton);
-        this.createButton = page.locator(CreateBoardTileSelectors.createButton);
+        this.createMenuButton = page.getByRole('button', {name: 'Create board or Workspace', exact: true });
+        this.createBoardButton = page.getByTestId('header-create-board-button');
+        this.currentBoardSelector = page.getByTestId('board-name-container');
+        this.startWithTemplateButton = page.getByRole('button', {name: 'Start with a template'}).first();
+        this.boardTitle = page.getByTestId('create-board-title-input');
+        this.visibilityDropdown = page.getByTestId('create-board-select-visibility');
+        this.visibilityListbox = page.getByTestId('create-board-select-visibility-select--listbox');
+        this.confirmPublicButton = page.getByRole('button', { name: 'Yes, make board public' });
+        this.createButton = page.getByTestId('create-board-submit-button');
     }
 
     async createBoard(boardname: string, visibility: string) {
         await this.createMenuButton.click();
+        await expect(this.createBoardButton).toBeVisible();
         await this.createBoardButton.click();
+        await expect(this.boardTitle).toBeVisible();
         await this.boardTitle.fill(boardname);
         await this.selectBoardVisibility(visibility)
         await this.createButton.click();
+        // if 'Change box to Public?' dialog available, make an action
+
     }
 
     async selectBoardVisibility(visibility: string) {
@@ -45,18 +49,21 @@ export class Boards {
             })
             .first()
             .click();
-
-        const confirmButton = this.page.locator(CreateBoardTileSelectors.confirmPublicButton);
         
-        if(await confirmButton.isVisible()) {
-            await confirmButton.click();
+        const confirmationRequired = await this.confirmPublicButton
+            .waitFor({state: 'visible', timeout: 3000})
+            .then(() => true)
+            .catch(() => false);
+
+        if (confirmationRequired) {
+            await this.confirmPublicButton.click();
         }
     }
 
 
 
     async findBoard(boardname: string) {
-        return this.page.locator(`a[aria-label='${boardname}']`);
+        return this.page.getByRole('link', { name: boardname });
     }
 
     async getCurrentCompanydName() {
