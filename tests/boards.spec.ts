@@ -4,8 +4,6 @@ import { Boards } from '../pages/Boards-Page';
 import { URL } from '../data/constants';
 
 let boardsPage: Boards;
-
-// Used for Board clean up after each test
 let shortBoardId: string;
 
 test.describe("Sample test for Boards page", () => {

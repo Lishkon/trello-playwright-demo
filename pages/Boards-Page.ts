@@ -15,26 +15,44 @@ export class Boards {
 
     constructor(page: Page) {
         this.page = page;
-        this.createMenuButton = page.getByRole('button', {name: 'Create board or Workspace', exact: true });
+        this.createMenuButton = page.getByTestId('header-create-menu-button');
         this.createBoardButton = page.getByTestId('create-board-button');
         this.currentBoardSelector = page.getByTestId('board-name-container');
         this.startWithTemplateButton = page.getByRole('button', {name: 'Start with a template'}).first();
-        this.boardTitle = page.getByTestId('create-board-title-input');
+        this.boardTitle = page.getByTestId('create-board-title-input').first();
         this.visibilityDropdown = page.getByTestId('create-board-select-visibility');
         this.visibilityListbox = page.getByTestId('create-board-select-visibility-select--listbox');
         this.confirmPublicButton = page.getByRole('button', { name: 'Yes, make board public' });
         this.createButton = page.getByTestId('create-board-submit-button');
+
+        this.registerInterstitialHandlers();
+    }
+
+    private registerInterstitialHandlers() {
+        this.page.addLocatorHandler(
+            this.page.getByTestId('accept-all-button'),
+            async (button) => {
+                await button.click();
+                await this.page.waitForLoadState('domcontentloaded');
+            }
+        );
+        this.page.addLocatorHandler(
+            this.page.getByRole('button', {name: 'Close', exact: true}),
+            async (banner) => { await banner.click(); }
+        );
     }
 
     async createBoard(boardname: string, visibility: string) {
-        await this.createMenuButton.click();
-        await expect(this.createBoardButton).toBeVisible();
-        await this.createBoardButton.click();
-        await expect(this.boardTitle).toBeVisible();
+
+        await expect(async () => {
+            await this.createMenuButton.click({timeout: 5000});
+            await this.createBoardButton.click({timeout: 5000});
+            await expect(this.boardTitle).toBeVisible({timeout: 5000});
+        }).toPass({ timeout: 20000});
+
         await this.boardTitle.fill(boardname);
         await this.selectBoardVisibility(visibility)
         await this.createButton.click();
-        // if 'Change box to Public?' dialog available, make an action
 
     }
 
