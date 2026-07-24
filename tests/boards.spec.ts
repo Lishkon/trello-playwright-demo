@@ -10,6 +10,7 @@ test.describe("Sample test for Boards page", () => {
     test.beforeEach(async ({ page }) => {
         boardsPage = new Boards(page);
         await page.goto(URL.E2E.PROD);
+        await boardsPage.dismissPageChrome();
     })
 
     /**

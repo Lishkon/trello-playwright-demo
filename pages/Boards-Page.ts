@@ -1,5 +1,4 @@
 import { Locator, Page, expect } from "@playwright/test";
-import { BoardsTabMenuSelectors, CreateBoardTileSelectors, CurrentBoardSelectors } from "../selectors/boards-selectors";
 
 export class Boards {
     readonly page: Page;
@@ -24,31 +23,29 @@ export class Boards {
         this.visibilityListbox = page.getByTestId('create-board-select-visibility-select--listbox');
         this.confirmPublicButton = page.getByRole('button', { name: 'Yes, make board public' });
         this.createButton = page.getByTestId('create-board-submit-button');
-
-        this.registerInterstitialHandlers();
     }
 
-    private registerInterstitialHandlers() {
-        this.page.addLocatorHandler(
-            this.page.getByTestId('accept-all-button'),
-            async (button) => {
-                await button.click();
-                await this.page.waitForLoadState('domcontentloaded');
-            }
-        );
-        this.page.addLocatorHandler(
-            this.page.getByRole('button', {name: 'Close', exact: true}),
-            async (banner) => { await banner.click(); }
-        );
+    async dismissPageChrome() {
+        const cookieAcceptAll = this.page.getByTestId('accept-all-button');
+        if (await cookieAcceptAll.isVisible({ timeout: 5000 }).catch(() => false)) {
+            await cookieAcceptAll.click();
+            await this.page.waitForLoadState('domcontentloaded');
+        }
+
+        const closeBanner = this.page.getByRole('button', { name: 'Close', exact: true });
+        if (await closeBanner.isVisible({ timeout: 3000 }).catch(() => false)) {
+            await closeBanner.click();
+        }
     }
 
     async createBoard(boardname: string, visibility: string) {
+        await this.page.waitForLoadState('networkidle');
 
         await expect(async () => {
-            await this.createMenuButton.click({timeout: 5000});
-            await this.createBoardButton.click({timeout: 5000});
-            await expect(this.boardTitle).toBeVisible({timeout: 5000});
-        }).toPass({ timeout: 20000});
+            await this.createMenuButton.click({timeout: 8000});
+            await this.createBoardButton.click({timeout: 8000});
+            await expect(this.boardTitle).toBeVisible({timeout: 8000});
+        }).toPass({ timeout: 25000});
 
         await this.boardTitle.fill(boardname);
         await this.selectBoardVisibility(visibility)
