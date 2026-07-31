@@ -33,7 +33,7 @@ export class Boards {
         }
 
         const closeBanner = this.page.getByRole('button', { name: 'Close', exact: true });
-        if (await closeBanner.isVisible({ timeout: 3000 }).catch(() => false)) {
+        if (await closeBanner.isVisible({ timeout: 5000 }).catch(() => false)) {
             await closeBanner.click();
         }
     }
@@ -66,7 +66,7 @@ export class Boards {
             .click();
         
         const confirmationRequired = await this.confirmPublicButton
-            .waitFor({state: 'visible', timeout: 3000})
+            .waitFor({state: 'visible', timeout: 5000})
             .then(() => true)
             .catch(() => false);
 
