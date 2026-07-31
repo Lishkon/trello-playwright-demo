@@ -26,20 +26,26 @@ setup("Authentication with 2FA", async ({page}) => {
   await page.goto(URL.E2E.PROD);
 
   await loginPage.clickLoginLink()
-  await loginPage.login(CREDENTIALS.REAL.USER!, CREDENTIALS.REAL.PASSWORD!)
-  
-  const secret = process.env.TOTP_SECRET!;
-  try {
-    await expect(loginPage.otpInput).toBeVisible({ timeout: 5000 });  
-    // Adding the otplib window option to bypass the time-related issue in CI
-    authenticator.options = { window: 2 };  
-    const otp = authenticator.generate(secret);
-    console.log("Generated OTP:", otp);    
+  await loginPage.loginWithTwoFactor(
+    CREDENTIALS.REAL.USER!,
+    CREDENTIALS.REAL.PASSWORD!,
+    process.env.TOTP_SECRET!
+  );
 
-    await loginPage.completeOtp(otp);
-  } catch (e) {
-    console.log("No OTP challenge this time, continuing without it...");
-  }
+  // await loginPage.login(CREDENTIALS.REAL.USER!, CREDENTIALS.REAL.PASSWORD!)
+  
+  // const secret = process.env.TOTP_SECRET!;
+  // try {
+  //   await expect(loginPage.otpInput).toBeVisible({ timeout: 5000 });  
+  //   // Adding the otplib window option to bypass the time-related issue in CI
+  //   authenticator.options = { window: 2 };  
+  //   const otp = authenticator.generate(secret);
+  //   console.log("Generated OTP:", otp);    
+
+  //   await loginPage.completeOtp(otp);
+  // } catch (e) {
+  //   console.log("No OTP challenge this time, continuing without it...");
+  // }
   
   await expect(page).toHaveURL(/.*trello\.com\/.*boards.*/);
 
