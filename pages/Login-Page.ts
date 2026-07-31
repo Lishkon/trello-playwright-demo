@@ -1,35 +1,31 @@
-import { Locator, Page } from "@playwright/test";
-import { LoginSelectors, AttlassianScreenSelectors } from "../selectors/login-selectors";
+import { authenticator } from "otplib";
+import { Locator, Page, expect } from "@playwright/test";
 
-export class Login {
+export class LoginPage {
     readonly page: Page;
-    readonly trelloLogo: Locator;
     readonly emailInput: Locator;
     readonly passwordInput: Locator;
     readonly continueButton: Locator;
+    readonly loginLink: Locator;
     readonly loginButton: Locator;
-    readonly signupButton: Locator;
-    readonly atlassianHeaderTitle: Locator;
-    readonly invalidCredentialHeaderTitle: Locator;
+    readonly errorMessage: Locator;
+    readonly signUpLink: Locator;
     readonly missingEmailValidationMessage: Locator;
     readonly missingPasswordValidationMessage: Locator;
     readonly otpInput: Locator;
-    readonly otpSubmitButton: Locator;
 
     constructor(page: Page) {
         this.page = page;
-        this.trelloLogo = page.locator(LoginSelectors.TrelloLogo);
-        this.emailInput = page.locator(LoginSelectors.EmailInp);
-        this.passwordInput = page.locator(LoginSelectors.PasswordInp);
-        this.continueButton = page.locator(LoginSelectors.ContinueBtn);
-        this.loginButton = page.locator(LoginSelectors.LogInBtn);
-        this.signupButton = page.locator(LoginSelectors.SignUpButn);
-        this.atlassianHeaderTitle = page.locator(AttlassianScreenSelectors.HeaderTitle);
-        this.invalidCredentialHeaderTitle = page.locator(AttlassianScreenSelectors.IncorrectCredentialsWarning);
-        this.missingEmailValidationMessage = page.locator(AttlassianScreenSelectors.MissingEmailValidationMessage);
-        this.missingPasswordValidationMessage = page.locator(AttlassianScreenSelectors.MissingPasswordValidationMessage);
-        this.otpInput = page.locator(AttlassianScreenSelectors.OtpCodeInput);
-        this.otpSubmitButton = page.locator(AttlassianScreenSelectors.VerifyButton);
+        this.emailInput = page.getByTestId('username');
+        this.passwordInput = page.getByLabel('Password')
+        this.continueButton = page.getByRole('button', {name: 'Continue'});
+        this.loginLink = page.getByRole('link', {name: 'Log in', exact: true });
+        this.loginButton = page.getByRole('button', {name: 'Log in', exact: true });
+        this.errorMessage = page.getByRole('alert');
+        this.signUpLink = page.getByRole('link', {name: 'Sign up'});
+        this.missingEmailValidationMessage = page.getByTestId('message-wrapper').first();
+        this.missingPasswordValidationMessage = page.getByTestId('password-error-idf-testid');
+        this.otpInput = page.locator('input[name="otpCode"]');
     }
 
 
@@ -38,6 +34,19 @@ export class Login {
         await this.continueButton.click();
         await this.passwordInput.fill(password);
         await this.loginButton.click();
+    }
+
+    async loginWithTwoFactor(username: string, password: string, secret: string) {
+        await this.login(username, password);
+
+        try {
+            await expect(this.otpInput).toBeVisible({timeout: 5000});
+            authenticator.options = { window: 2 };
+            const otp = authenticator.generate(secret);
+            await this.completeOtp(otp);
+        } catch (e) {
+            console.log("No OTP challenge detected, continuing working without it. Reason: ", (e as Error).message);
+        }
     }
 
     async typeEmail(email: string) {
@@ -52,19 +61,19 @@ export class Login {
         await this.continueButton.click();
     }
     
-    async clickSignUp() {
-        await this.signupButton.click();
+    async clickLoginLink() {
+        await this.loginLink.click();
     }
-    
+
     async clickLoginButton() {
         await this.loginButton.click();
     }
-
+    
     async completeOtp(code: string) {
         if(await this.otpInput.isVisible()){
             await this.otpInput.click();
             await this.page.keyboard.type(code); 
-            await this.otpSubmitButton.click();
+            await this.loginButton.click();
         }
     }
 }

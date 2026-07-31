@@ -4,8 +4,7 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 import { CREDENTIALS, URL } from "../data/constants";
-import { HeaderSelectors } from "../selectors/base-selectors";
-import { Login } from "../pages/Login-Page";
+import { LoginPage } from "../pages/Login-Page";
 
 const authFile = "auth/atlassian-storage.json";
 
@@ -22,28 +21,31 @@ const authFile = "auth/atlassian-storage.json";
  */
 
 setup("Authentication with 2FA", async ({page}) => { 
-  const loginPage = new Login(page);
+  const loginPage = new LoginPage(page);
   
   await page.goto(URL.E2E.PROD);
-  await page.click(HeaderSelectors.LogInBtn);
-  await loginPage.typeEmail(CREDENTIALS.REAL.USER!);
-  await loginPage.clickContinue();
-  await loginPage.typePassword(CREDENTIALS.REAL.PASSWORD!);
-  await loginPage.clickLoginButton();
+
+  await loginPage.clickLoginLink()
+  await loginPage.loginWithTwoFactor(
+    CREDENTIALS.REAL.USER!,
+    CREDENTIALS.REAL.PASSWORD!,
+    process.env.TOTP_SECRET!
+  );
+
+  // await loginPage.login(CREDENTIALS.REAL.USER!, CREDENTIALS.REAL.PASSWORD!)
   
-  const secret = process.env.SECRET!;
-  try {
-    await expect(loginPage.otpInput).toBeVisible({ timeout: 5000 });  
-    // Adding the otplib window option to bypass the time-related issue in CI
-    authenticator.options = { window: 2 };  
-    const otp = authenticator.generate(secret);
-    console.log("Generated OTP:", otp);    
-    await loginPage.otpInput.click();
-    await page.keyboard.type(otp);
-    await loginPage.otpSubmitButton.click();
-  } catch (e) {
-    console.log("No OTP challenge this time, continuing without it...");
-  }
+  // const secret = process.env.TOTP_SECRET!;
+  // try {
+  //   await expect(loginPage.otpInput).toBeVisible({ timeout: 5000 });  
+  //   // Adding the otplib window option to bypass the time-related issue in CI
+  //   authenticator.options = { window: 2 };  
+  //   const otp = authenticator.generate(secret);
+  //   console.log("Generated OTP:", otp);    
+
+  //   await loginPage.completeOtp(otp);
+  // } catch (e) {
+  //   console.log("No OTP challenge this time, continuing without it...");
+  // }
   
   await expect(page).toHaveURL(/.*trello\.com\/.*boards.*/);
 

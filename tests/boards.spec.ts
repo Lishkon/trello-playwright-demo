@@ -4,14 +4,13 @@ import { Boards } from '../pages/Boards-Page';
 import { URL } from '../data/constants';
 
 let boardsPage: Boards;
-
-// Used for Board clean up after each test
 let shortBoardId: string;
 
 test.describe("Sample test for Boards page", () => {
     test.beforeEach(async ({ page }) => {
         boardsPage = new Boards(page);
         await page.goto(URL.E2E.PROD);
+        await boardsPage.dismissPageChrome();
     })
 
     /**
@@ -34,9 +33,11 @@ test.describe("Sample test for Boards page", () => {
      */
     test.afterEach(async ({request }) => {
         if (shortBoardId) {
-            await request.delete(
+            const response = await request.delete(
                 `https://api.trello.com/1/boards/${shortBoardId}?key=${process.env.TRELLO_KEY}&token=${process.env.TRELLO_TOKEN}`
             );
+            expect(response.ok(), `Failed to delete board with id: ${shortBoardId}`).toBeTruthy();
+            
         }
     })
 

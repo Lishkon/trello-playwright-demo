@@ -1,5 +1,4 @@
 import { Locator, Page, expect } from "@playwright/test";
-import { BoardsTabMenuSelectors, CreateBoardTileSelectors, CurrentBoardSelectors } from "../selectors/boards-selectors";
 
 export class Boards {
     readonly page: Page;
@@ -15,23 +14,43 @@ export class Boards {
 
     constructor(page: Page) {
         this.page = page;
-        this.createMenuButton = page.locator(BoardsTabMenuSelectors.createMenuButton);
-        this.createBoardButton = page.locator(BoardsTabMenuSelectors.createBoardButton);
-        this.currentBoardSelector = page.locator(CurrentBoardSelectors.currentBoardTitle);
-        this.startWithTemplateButton = page.locator(BoardsTabMenuSelectors.startWithTemplateButton);
-        this.boardTitle = page.locator(CreateBoardTileSelectors.boardTitle);
-        this.visibilityDropdown = page.locator(CreateBoardTileSelectors.visibilityOption);
-        this.visibilityListbox = page.locator(CreateBoardTileSelectors.visibilityListox);
-        this.confirmPublicButton = page.locator(CreateBoardTileSelectors.confirmPublicButton);
-        this.createButton = page.locator(CreateBoardTileSelectors.createButton);
+        this.createMenuButton = page.getByTestId('header-create-menu-button');
+        this.createBoardButton = page.getByTestId('create-board-button');
+        this.currentBoardSelector = page.getByTestId('board-name-container');
+        this.startWithTemplateButton = page.getByRole('button', {name: 'Start with a template'}).first();
+        this.boardTitle = page.getByTestId('create-board-title-input').first();
+        this.visibilityDropdown = page.getByTestId('create-board-select-visibility');
+        this.visibilityListbox = page.getByTestId('create-board-select-visibility-select--listbox');
+        this.confirmPublicButton = page.getByRole('button', { name: 'Yes, make board public' });
+        this.createButton = page.getByTestId('create-board-submit-button');
+    }
+
+    async dismissPageChrome() {
+        const cookieAcceptAll = this.page.getByTestId('accept-all-button');
+        if (await cookieAcceptAll.isVisible({ timeout: 5000 }).catch(() => false)) {
+            await cookieAcceptAll.click();
+            await this.page.waitForLoadState('domcontentloaded');
+        }
+
+        const closeBanner = this.page.getByRole('button', { name: 'Close', exact: true });
+        if (await closeBanner.isVisible({ timeout: 5000 }).catch(() => false)) {
+            await closeBanner.click();
+        }
     }
 
     async createBoard(boardname: string, visibility: string) {
-        await this.createMenuButton.click();
-        await this.createBoardButton.click();
+        await this.page.waitForLoadState('networkidle');
+
+        await expect(async () => {
+            await this.createMenuButton.click({timeout: 8000});
+            await this.createBoardButton.click({timeout: 8000});
+            await expect(this.boardTitle).toBeVisible({timeout: 8000});
+        }).toPass({ timeout: 25000});
+
         await this.boardTitle.fill(boardname);
         await this.selectBoardVisibility(visibility)
         await this.createButton.click();
+
     }
 
     async selectBoardVisibility(visibility: string) {
@@ -45,18 +64,21 @@ export class Boards {
             })
             .first()
             .click();
-
-        const confirmButton = this.page.locator(CreateBoardTileSelectors.confirmPublicButton);
         
-        if(await confirmButton.isVisible()) {
-            await confirmButton.click();
+        const confirmationRequired = await this.confirmPublicButton
+            .waitFor({state: 'visible', timeout: 5000})
+            .then(() => true)
+            .catch(() => false);
+
+        if (confirmationRequired) {
+            await this.confirmPublicButton.click();
         }
     }
 
 
 
     async findBoard(boardname: string) {
-        return this.page.locator(`a[aria-label='${boardname}']`);
+        return this.page.getByRole('link', { name: boardname });
     }
 
     async getCurrentCompanydName() {

@@ -2,7 +2,7 @@
 
 # Global variables
 variables:
-  PW_IMAGE: "mcr.microsoft.com/playwright:v1.53.2-jammy"
+  PW_IMAGE: "mcr.microsoft.com/playwright:v1.61.1-jammy"
   TEST_SUITE: "tests/"
 
 # Define stages
@@ -13,7 +13,7 @@ stages:
 # Run Playwright tests
 playwright-tests:
   stage: test
-  image: mcr.microsoft.com/playwright:v1.53.2-jammy
+  image: mcr.microsoft.com/playwright:v1.61.1-jammy
   variables:
     USER_EMAIL: ${E2E_VALID_USER}
     USER_PASSWORD: ${E2E_VALID_PASS}

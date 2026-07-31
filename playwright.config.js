@@ -45,6 +45,7 @@ export default defineConfig({
     {
       name: 'chromium-no-auth',
       testMatch: /login\.spec\.ts/i,
+      dependencies:["setup"],
       use: {
         ...devices['Desktop Chrome'],
         storageState: {cookies:[], origins:[]},
